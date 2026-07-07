@@ -14,6 +14,11 @@
 
 This repository collects manim animation scripts created for personal study and teaching, aiming to visualize abstract math concepts. Each `.py` file is a standalone scene that can be rendered independently.
 
+## 📺 关注我 · Follow
+
+- **哔哩哔哩 · Bilibili**：<https://space.bilibili.com/3494372465183405>
+- **抖音 · Douyin**：`LinXMath`
+
 ## 📚 主题分类 · Topics
 
 共 53 个脚本，按数学主题分类如下。表中“场景类”为渲染时传入的类名。
