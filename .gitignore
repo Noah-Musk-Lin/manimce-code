@@ -30,6 +30,11 @@ logs
 *.log
 # OS Specific Files
 .DS_Store
+
+# Windows System Files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 # Editor Directories and Files
 .vscode/
 !.vscode/extensions.json
