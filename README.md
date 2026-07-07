@@ -16,7 +16,7 @@ This repository collects manim animation scripts created for personal study and 
 
 ## 📺 关注我 · Follow
 
-- **哔哩哔哩 · Bilibili**：<https://space.bilibili.com/3494372465183405>
+- **哔哩哔哩 · Bilibili**：[我的B站主页](https://space.bilibili.com/3494372465183405)
 - **抖音 · Douyin**：`LinXMath`
 
 ## 📚 主题分类 · Topics
