@@ -47,3 +47,12 @@ package-lock.json
 yarn.lock
 # Local Environment Files
 *.local
+
+# Manim render output (build artifacts, do not track)
+media/
+media_cache/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

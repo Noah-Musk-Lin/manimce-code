@@ -116,7 +116,7 @@ class ODE(Scene):
         formula11.next_to(single_arrow, RIGHT, buff=0.3)
         self.play(Write(formula11))
         self.wait(0.5)
-        general_solution_xy = MathTex("y = C \\cdot \\frac{y}{x} \\cdot e^{\\int \\frac{1}{f\\left(\\frac{y}{x}\\right) - \\frac{y}{x}} d\\left(\\frac{y}{x}\\right)}",font_size=32,color = BLUE)
+        general_solution_xy = MathTex("y = C \\cdot \\frac{y}{x} \\cdot e^{\\int \\frac{1}{f\\left(\\frac{y}{x}\\right) - \\frac{y}{x}} d\\left(\\frac{y}{x}\\right)}",font_size=22,color = BLUE)
         text13 = Text("通积分为:", font="SimHei", font_size=30, color=WHITE)
         group6 = VGroup(text13, general_solution_xy)
         group6.arrange(RIGHT, buff=0.5, aligned_edge=DOWN)
@@ -320,70 +320,68 @@ class ODE(Scene):
         self.play(Write(title_group))
         self.wait(1)
 
-        text29 = Text("换元方法:", font="SimHei", font_size=30, color=WHITE).next_to(formula18, buff=0.5)
-        group12 = VGroup(text29).arrange(RIGHT, buff=0.3).to_edge(LEFT).shift(UP*1)
+        text29 = Text("换元方法:", font="SimHei", font_size=28, color=WHITE)
+        group12 = VGroup(text29).to_edge(LEFT).shift(UP*1.2)
         self.play(Write(group12))
         self.wait(0.5)
 
-        text30 = Text("令", font="SimHei", font_size=30, color=WHITE)
-        formula19 = MathTex("u = ax + by + c", font_size=35, color=BLUE)
-        group13 = VGroup(text30, formula19).arrange(RIGHT, buff=0.1).next_to(group12, DOWN, buff=0.3).align_to(group12, LEFT)
+        text30 = Text("令", font="SimHei", font_size=28, color=WHITE)
+        formula19 = MathTex("u = ax + by + c", font_size=32, color=BLUE)
+        group13 = VGroup(text30, formula19).arrange(RIGHT, buff=0.1).next_to(group12, DOWN, buff=0.2).align_to(group12, LEFT)
         self.play(Write(group13))
         self.wait(0.5)
 
-        text31 = Text("求导:", font="SimHei", font_size=30, color=WHITE)
-        formula20 = MathTex("\\frac{du}{dx} = a + b\\frac{dy}{dx}", font_size=35)
-        group14 = VGroup(text31, formula20).arrange(RIGHT, buff=0.3).next_to(group13, DOWN, buff=0.3).align_to(group13, LEFT)
+        text31 = Text("求导:", font="SimHei", font_size=28, color=WHITE)
+        formula20 = MathTex("\\frac{du}{dx} = a + b\\frac{dy}{dx}", font_size=32)
+        group14 = VGroup(text31, formula20).arrange(RIGHT, buff=0.3).next_to(group13, DOWN, buff=0.2).align_to(group13, LEFT)
         self.play(Write(group14))
         self.wait(0.5)
 
-        formula21 = MathTex("\\frac{dy}{dx} = \\frac{1}{b}\\left( \\frac{du}{dx} - a \\right)", font_size=35)
+        formula21 = MathTex("\\frac{dy}{dx} = \\frac{1}{b}\\left( \\frac{du}{dx} - a \\right)", font_size=32)
         formula21.next_to(group14, RIGHT, buff=0.5)
         self.play(Write(formula21))
         self.wait(0.5)
 
-        text32 = Text("代入原方程:", font="SimHei", font_size=30, color=WHITE)
-        text32.next_to(group14, DOWN, buff=0.5).align_to(group14, LEFT)
+        text32 = Text("代入原方程:", font="SimHei", font_size=28, color=WHITE)
+        text32.next_to(group14, DOWN, buff=0.25).align_to(group14, LEFT)
         self.play(Write(text32))
         self.wait(0.5)
 
-        formula22 = MathTex("\\frac{1}{b}\\left( \\frac{du}{dx} - a \\right) = f(u)", font_size=35)
+        formula22 = MathTex("\\frac{1}{b}\\left( \\frac{du}{dx} - a \\right) = f(u)", font_size=32)
         formula22.next_to(text32, RIGHT, buff=0.3).set_y(text32.get_y())
         self.play(Write(formula22))
         self.wait(0.5)
 
         single_arrow3 = Arrow(start=text32.get_left(), end=text32.get_left()+RIGHT*2, stroke_width=3, color=WHITE)
-        single_arrow3.set_y(text32.get_bottom()[1]-0.5)
+        single_arrow3.set_y(text32.get_bottom()[1]-0.4)
         self.play(Create(single_arrow3))
         self.wait(0.5)
 
-        formula23 = MathTex("\\frac{du}{dx} = b f(u) + a", font_size=35)
+        formula23 = MathTex("\\frac{du}{dx} = b f(u) + a", font_size=32)
         formula23.next_to(single_arrow3, RIGHT, buff=0.3)
         self.play(Write(formula23))
         self.wait(0.5)
 
-        text33 = Text("转化为可分离变量方程:", font="SimHei", font_size=30, color=WHITE)
-        text33.next_to(formula23, RIGHT, buff=0.5)
+        text33 = Text("转化为可分离变量方程:", font="SimHei", font_size=26, color=WHITE)
+        text33.next_to(single_arrow3, DOWN, buff=0.2).align_to(single_arrow3, LEFT)
         self.play(Write(text33))
         self.wait(0.5)
 
-        formula24 = MathTex("\\frac{du}{b f(u) + a} = dx", font_size=35)
+        formula24 = MathTex("\\frac{du}{b f(u) + a} = dx", font_size=28)
         formula24.next_to(text33, RIGHT, buff=0.3).set_y(text33.get_y())
         self.play(Write(formula24))
         self.wait(0.5)
 
-        text34 = Text("通积分为:", font="SimHei", font_size=30, color=WHITE)
-        general_solution = MathTex("\\int \\frac{du}{b f(u) + a} = x + C", font_size=35, color=BLUE)
+        text34 = Text("通积分为:", font="SimHei", font_size=28, color=WHITE)
+        general_solution = MathTex("\\int \\frac{du}{b f(u) + a} = x + C", font_size=32, color=BLUE)
         group15 = VGroup(text34, general_solution)
         group15.arrange(RIGHT, buff=0.5, aligned_edge=DOWN)
-        group15.next_to(single_arrow3, DOWN, buff=0.5)
-        group15.align_to(single_arrow3, LEFT)
+        group15.next_to(text33, DOWN, buff=0.25).align_to(text33, LEFT)
         self.play(Write(group15))
         self.wait(2)
 
         self.play(
-            FadeOut(text28),
-            FadeOut(formula18),
+            FadeOut(title_group),
             FadeOut(group12),
             FadeOut(group13),
             FadeOut(group14),
@@ -395,8 +393,6 @@ class ODE(Scene):
             FadeOut(text33),
             FadeOut(formula24),
             FadeOut(group15),
-            FadeOut(title_group),
-            FadeOut(text28_end)
         )
         
         
@@ -515,33 +511,105 @@ class ODE(Scene):
             FadeOut(group21),
             FadeOut(group22),
             FadeOut(group23),
-            FadeOut(group24),
+            FadeOut(group24)
+        )
+        # ===== 6. 黎卡提方程 — 第一页：推导 =====
+        text51 = Text("6.黎卡提(Riccati)方程", font="SimHei", font_size=30, color=WHITE).to_edge(LEFT).shift(UP*2)
+        self.play(Write(text51))
+        self.wait(0.5)
+
+        formula39 = MathTex("\\frac{dy}{dx} = P(x)y^2 + Q(x)y + R(x)", font_size=35)
+        formula39.next_to(text51, RIGHT, buff=0.3)
+        self.play(Write(formula39))
+        self.wait(1)
+
+        text52 = Text("换元方法:", font="SimHei", font_size=28, color=WHITE)
+        group25 = VGroup(text52).to_edge(LEFT).shift(UP*1.2)
+        self.play(Write(group25))
+        self.wait(0.5)
+
+        text53 = Text("设已知一个特解", font="SimHei", font_size=26, color=YELLOW)
+        formula40 = MathTex("y_1(x)", font_size=28, color=YELLOW)
+        group26 = VGroup(text53, formula40).arrange(RIGHT, buff=0.1)
+        group26.next_to(group25, DOWN, buff=0.2).align_to(group25, LEFT)
+        self.play(Write(group26))
+        self.wait(0.5)
+
+        text54 = Text("作变换:", font="SimHei", font_size=26, color=WHITE)
+        formula41 = MathTex("y = y_1 + \\frac{1}{v}", font_size=30, color=BLUE)
+        group27 = VGroup(text54, formula41).arrange(RIGHT, buff=0.1)
+        group27.next_to(group26, DOWN, buff=0.2).align_to(group26, LEFT)
+        self.play(Write(group27))
+        self.wait(0.5)
+
+        text55 = Text("求导:", font="SimHei", font_size=26, color=WHITE)
+        formula42 = MathTex("\\frac{dy}{dx} = \\frac{dy_1}{dx} - \\frac{1}{v^2} \\frac{dv}{dx}", font_size=30)
+        group28 = VGroup(text55, formula42).arrange(RIGHT, buff=0.3)
+        group28.next_to(group27, DOWN, buff=0.2).align_to(group27, LEFT)
+        self.play(Write(group28))
+        self.wait(0.5)
+
+        text56 = Text("代入原方程，利用特解满足方程化简:", font="SimHei", font_size=26, color=WHITE)
+        text56.next_to(group28, DOWN, buff=0.25).align_to(group28, LEFT)
+        self.play(Write(text56))
+        self.wait(0.5)
+
+        formula43 = MathTex("P(x)y_1^2 + Q(x)y_1 + R(x) = 0", font_size=28)
+        formula43.next_to(text56, RIGHT, buff=0.3).set_y(text56.get_y())
+        self.play(Write(formula43))
+        self.wait(0.5)
+
+        text57 = Text("得到关于v的线性方程:", font="SimHei", font_size=26, color=WHITE)
+        text57.next_to(text56, DOWN, buff=0.25).align_to(text56, LEFT)
+        self.play(Write(text57))
+        self.wait(0.5)
+
+        formula44 = MathTex("\\frac{dv}{dx} + [2P(x)y_1 + Q(x)] v = -P(x)", font_size=30)
+        formula44.next_to(text57, RIGHT, buff=0.3).set_y(text57.get_y())
+        self.play(Write(formula44))
+        self.wait(2)
+
+        # 翻页：淡出推导细节，保留标题
+        self.play(
+            FadeOut(group25),
+            FadeOut(group26),
+            FadeOut(group27),
+            FadeOut(group28),
+            FadeOut(text56),
+            FadeOut(formula43),
+            FadeOut(text57),
+            FadeOut(formula44),
+        )
+        self.wait(0.5)
+
+        # ===== 6. 黎卡提方程 — 第二页：求解 =====
+        text60 = Text("求解:", font="SimHei", font_size=28, color=WHITE).to_edge(LEFT).shift(UP*1)
+        self.play(Write(text60))
+        self.wait(0.5)
+
+        single_arrow4 = Arrow(start=text60.get_left(), end=text60.get_left()+RIGHT*2, stroke_width=3, color=WHITE)
+        single_arrow4.set_y(text60.get_bottom()[1]-0.4)
+        self.play(Create(single_arrow4))
+        self.wait(0.5)
+
+        text58 = Text("利用一阶线性方程通解公式求解v，再回代", font="SimHei", font_size=28, color=WHITE)
+        text58.next_to(single_arrow4, RIGHT, buff=0.3)
+        self.play(Write(text58))
+        self.wait(0.5)
+
+        text59 = Text("通解为:", font="SimHei", font_size=30, color=WHITE)
+        formula45 = MathTex("y = y_1 + \\frac{1}{v(x)}", font_size=35, color=BLUE)
+        group29 = VGroup(text59, formula45).arrange(RIGHT, buff=0.5, aligned_edge=DOWN)
+        group29.next_to(text58, DOWN, buff=0.5).align_to(text58, LEFT)
+        self.play(Write(group29))
+        self.wait(2)
+
+        self.play(
+            FadeOut(text51),
+            FadeOut(formula39),
+            FadeOut(text60),
+            FadeOut(single_arrow4),
+            FadeOut(text58),
+            FadeOut(group29),
             FadeOut(Text1)
         )
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
