@@ -176,5 +176,8 @@ Issues and PRs are welcome to add new animations or improve existing ones. Pleas
 
 ## 📄 许可 · License
 
-个人学习项目，仅供交流学习。
-Personal learning project, for educational use only.
+本项目采用 [MIT License](LICENSE) 开源。
+
+This project is licensed under the [MIT License](LICENSE).
+
+Copyright © 2026 LinXMath
