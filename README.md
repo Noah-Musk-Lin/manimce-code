@@ -1,10 +1,10 @@
 # ManimCE 数学动画合集 · Math Animation Collection
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Manim-Community_v0.18+-15C39B?logo=manim&logoColor=white" alt="Manim">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://www.manim.community/"><img src="https://img.shields.io/badge/Manim-Community_v0.18+-15C39B?logo=manim&logoColor=white" alt="Manim"></a>
   <img src="https://img.shields.io/badge/Scripts-53+-9CF" alt="Scripts">
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License"></a>
   <img src="https://img.shields.io/badge/Language-中文_|_English-ff69b4" alt="Language">
 </p>
 
@@ -278,9 +278,9 @@ manimce code/
 
 ## 📄 许可 · License
 
-本项目采用 [MIT License](LICENSE) 开源。你可以自由地使用、修改和分发这些代码。
+本项目采用 [MIT License](./LICENSE) 开源。你可以自由地使用、修改和分发这些代码。
 
-This project is open-sourced under the [MIT License](LICENSE). You are free to use, modify, and distribute the code.
+This project is open-sourced under the [MIT License](./LICENSE). You are free to use, modify, and distribute the code.
 
 ---
 
