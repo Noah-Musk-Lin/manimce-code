@@ -6,7 +6,7 @@ config.pixel_width = 1080
 config.pixel_height = 1920
 config.frame_width = 8.0
 config.frame_height = 14.22
-config.media_dir = "D:/manim/media_dupin"
+config.media_dir = "media"
 
 
 ZH_FONT = "仿宋-GB2312"
