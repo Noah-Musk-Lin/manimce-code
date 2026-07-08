@@ -39,7 +39,7 @@ Each `.py` file is a complete animation for one mathematical topic, designed as 
     <img src="https://img.shields.io/badge/Bilibili-哔哩哔哩-00A1D6?logo=bilibili&logoColor=white&style=for-the-badge" alt="Bilibili">
   </a>
   &nbsp;
-  <a href="#">
+  <a href="https://v.douyin.com/sDg6IeYwx-M/">
     <img src="https://img.shields.io/badge/Douyin-抖音_LinXMath-000000?logo=tiktok&logoColor=white&style=for-the-badge" alt="Douyin">
   </a>
 </p>
@@ -287,5 +287,5 @@ This project is open-sourced under the [MIT License](./LICENSE). You are free to
 <p align="center">
   Made with ❤️ and a lot of <code>self.play()</code> calls
   <br>
-  <sub>© 2026 LinXMath · Bilibili: <a href="https://space.bilibili.com/3494372465183405">林深不见鹿</a> · Douyin: LinXMath</sub>
+  <sub>© 2026 LinXMath · Bilibili: <a href="https://space.bilibili.com/3494372465183405">林深不见鹿</a> · Douyin: <a href="https://v.douyin.com/sDg6IeYwx-M/">LinXMath</a></sub>
 </p>
