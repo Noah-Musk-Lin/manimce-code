@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white" alt="Python"></a>
   <a href="https://www.manim.community/"><img src="https://img.shields.io/badge/Manim-Community_v0.18+-15C39B?logo=manim&logoColor=white" alt="Manim"></a>
-  <img src="https://img.shields.io/badge/Scripts-53+-9CF" alt="Scripts">
+  <img src="https://img.shields.io/badge/Scripts-54+-9CF" alt="Scripts">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License"></a>
   <img src="https://img.shields.io/badge/Language-中文_|_English-ff69b4" alt="Language">
 </p>
@@ -46,105 +46,106 @@ Each `.py` file is a complete animation for one mathematical topic, designed as 
 
 ## 📚 主题分类 · Topics
 
-> 共 **53 个脚本**，按数学主题分组。每个脚本都包含了渲染时使用的场景类名。
+> 共 **54 个脚本**，按数学主题分组。每个脚本都包含了渲染时使用的场景类名。
 >
-> **53 scripts** in total, organized by mathematical topic. Each includes the scene class name for rendering.
+> **54 scripts** in total, organized by mathematical topic. Each includes the scene class name for rendering.
 
 ### 📐 微积分与实分析 · Calculus & Real Analysis
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `LagrangeMeanValueTheorem.py` | 拉格朗日中值定理 | `LagrangeMeanValueTheorem` |
-| `Lagrange3D.py` | 拉格朗日中值定理（3D 版） | `Lagrange3D` |
-| `TaylorExpansion2D.py` | 二元泰勒展开 | `TaylorExpansion2D` |
-| `taylor_series.py` | 泰勒级数（7 个场景） | `A1`–`A7` |
-| `NestedIntervalTheoremA.py` | 闭区间套定理 | `NestedIntervalTheoremA` |
-| `零点定理.py` | 零点定理（Bolzano） | `A1` |
-| `ArchimedesArea.py` | 阿基米德穷竭法 | `ArchimedesArea` |
+| `calculus/LagrangeMeanValueTheorem.py` | 拉格朗日中值定理 | `LagrangeMeanValueTheorem` |
+| `calculus/Lagrange3D.py` | 拉格朗日中值定理（3D 版） | `Lagrange3D` |
+| `calculus/TaylorExpansion2D.py` | 二元泰勒展开 | `TaylorExpansion2D` |
+| `calculus/taylor_series.py` | 泰勒级数（7 个场景） | `A1`–`A7` |
+| `calculus/NestedIntervalTheoremA.py` | 闭区间套定理 | `NestedIntervalTheoremA` |
+| `calculus/零点定理.py` | 零点定理（Bolzano） | `A1` |
+| `calculus/ArchimedesArea.py` | 阿基米德穷竭法 | `ArchimedesArea` |
 
 ### 🧮 线性代数 · Linear Algebra
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `BlockMatrix.py` | 分块矩阵 | `BlockMatrixScene` |
-| `MatrixMultiplicationScene.py` | 矩阵乘法 | `MatrixMultiplicationScene` |
-| `LaplaceExpansion.py` | 行列式拉普拉斯展开 | `LaplaceExpansion` |
-| `cauchy_binet_manim.py` | 柯西–比内公式 | `CauchyBinetFormula` |
-| `matrix_inverse_animation.py` | 逆矩阵 | `MatrixInverseExplanation` |
-| `JacobianDeterminant.py` | 雅可比行列式 | `JacobianDeterminant` |
-| `affine_proof.py` | 仿射变换证明 | `AffineProof` |
-| `linear_extension_theorem.py` | 线性延拓定理 | `LinearExtensionScene1` |
+| `linear_algebra/BlockMatrix.py` | 分块矩阵 | `BlockMatrixScene` |
+| `linear_algebra/MatrixMultiplicationScene.py` | 矩阵乘法 | `MatrixMultiplicationScene` |
+| `linear_algebra/LaplaceExpansion.py` | 行列式拉普拉斯展开 | `LaplaceExpansion` |
+| `linear_algebra/cauchy_binet_manim.py` | 柯西–比内公式 | `CauchyBinetFormula` |
+| `linear_algebra/matrix_inverse_animation.py` | 逆矩阵 | `MatrixInverseExplanation` |
+| `linear_algebra/JacobianDeterminant.py` | 雅可比行列式 | `JacobianDeterminant` |
+| `linear_algebra/affine_proof.py` | 仿射变换证明 | `AffineProof` |
+| `linear_algebra/linear_extension_theorem.py` | 线性延拓定理 | `LinearExtensionScene1` |
 
 ### 🔮 复分析 · Complex Analysis
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `CauchyRiemannEquations.py` | 柯西–黎曼方程 | `CauchyRiemannEquations` |
-| `Proof of Euler Formula change.py` | 欧拉公式的证明 | `EulerFormulaProof` |
+| `complex_analysis/CauchyRiemannEquations.py` | 柯西–黎曼方程 | `CauchyRiemannEquations` |
+| `complex_analysis/Proof of Euler Formula change.py` | 欧拉公式的证明 | `EulerFormulaProof` |
 
 ### 🌊 常微分方程 · Ordinary Differential Equations
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `ODE.py` | 常微分方程导论 | `ODE` |
-| `Ordinary Differential Equation.py` | 常微分方程 | `OrdinaryDifferentialEquation` |
-| `ODESubstitutionMethods.py` | ODE 换元法 | `ODESubstitutionMethods` |
-| `DirectionField.py` | 方向场 | `DirectionField` |
-| `DirectionFieldMulti.py` | 方向场图集 | `DirectionFieldGallery` |
-| `ode_max_interval.py` | ODE 最大存在区间 | `ODEMaxIntervalScene` |
-| `Wronskian.py` | 朗斯基行列式 | `Wronskian` |
+| `ode/ODE.py` | 常微分方程导论 | `ODE` |
+| `ode/Ordinary Differential Equation.py` | 常微分方程 | `OrdinaryDifferentialEquation` |
+| `ode/ODESubstitutionMethods.py` | ODE 换元法 | `ODESubstitutionMethods` |
+| `ode/DirectionField.py` | 方向场 | `DirectionField` |
+| `ode/DirectionFieldMulti.py` | 方向场图集 | `DirectionFieldGallery` |
+| `ode/ode_max_interval.py` | ODE 最大存在区间 | `ODEMaxIntervalScene` |
+| `ode/Wronskian.py` | 朗斯基行列式 | `Wronskian` |
 
 ### 📏 几何与曲线 · Geometry & Curves
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `ApolloniusCircleExpress.py` | 阿波罗尼奥斯圆 | `ApolloniusCircleExpress` |
-| `ArbitraryAngle.py` | 任意角 | `ArbitraryAngle` |
-| `CircleToTriangle.py` | 圆化三角形（等积变换） | `CircleToTriangle` |
-| `circle.py` | 圆的面积 | `Circle_Area` |
-| `Cut.py` | 圆面积切割法 | `Ultimate_Version_Circle_Area` |
-| `Ultimate Version Circle Area.py` | 圆面积（终极版） | `Ultimate_Version_Circle_Area` |
-| `EllipsePerpendicularSegments.py` | 椭圆垂直径段 | `EllipsePerpendicularSegments` |
-| `ellipsoid.py` | 椭球面（3D） | `Ellipsoid` |
-| `heart.py` | 心形曲线 | `HeartCurve` |
-| `archimedean_spiral.py` | 阿基米德螺线 | `ArchimedeanSpiral` |
-| `RightTriangle.py` | 直角三角形 | `RightTriangle` |
-| `RightTriangleWithMidsegment.py` | 直角三角形中位线 | `RightTriangleWithMidsegment` |
-| `SatelliteDishAnimation.py` | 卫星天线（抛物面反射） | `SatelliteDishAnimation` |
-| `三角函数.py` | 三角函数单位圆（3D） | `TrigCircle3D` |
+| `geometry/ApolloniusCircleExpress.py` | 阿波罗尼奥斯圆 | `ApolloniusCircleExpress` |
+| `geometry/ArbitraryAngle.py` | 任意角 | `ArbitraryAngle` |
+| `geometry/CircleToTriangle.py` | 圆化三角形（等积变换） | `CircleToTriangle` |
+| `geometry/circle.py` | 圆的面积 | `Circle_Area` |
+| `geometry/Cut.py` | 圆面积切割法 | `Ultimate_Version_Circle_Area` |
+| `geometry/Ultimate Version Circle Area.py` | 圆面积（终极版） | `Ultimate_Version_Circle_Area` |
+| `geometry/EllipsePerpendicularSegments.py` | 椭圆垂直径段 | `EllipsePerpendicularSegments` |
+| `geometry/ellipsoid.py` | 椭球面（3D） | `Ellipsoid` |
+| `geometry/heart.py` | 心形曲线 | `HeartCurve` |
+| `geometry/archimedean_spiral.py` | 阿基米德螺线 | `ArchimedeanSpiral` |
+| `geometry/dupin_indicatrix.py` | Dupin 标形 · Dupin Indicatrix | `DupinIndicatrix` |
+| `geometry/RightTriangle.py` | 直角三角形 | `RightTriangle` |
+| `geometry/RightTriangleWithMidsegment.py` | 直角三角形中位线 | `RightTriangleWithMidsegment` |
+| `geometry/SatelliteDishAnimation.py` | 卫星天线（抛物面反射） | `SatelliteDishAnimation` |
+| `geometry/三角函数.py` | 三角函数单位圆（3D） | `TrigCircle3D` |
 
 ### 🗺️ 坐标变换与可视化 · Coordinate Transform
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `CoordinateTransform.py` | 坐标变换与雅可比 | `CoordinateTransform` |
-| `ax.py` | 平滑坐标系 | `SmoothCoordinateSystem` |
-| `vortex_animation.py` | 3D 涡旋 | `ThreeDVortex` |
+| `coordinate_transform/CoordinateTransform.py` | 坐标变换与雅可比 | `CoordinateTransform` |
+| `coordinate_transform/ax.py` | 平滑坐标系 | `SmoothCoordinateSystem` |
+| `coordinate_transform/vortex_animation.py` | 3D 涡旋 | `ThreeDVortex` |
 
 ### ⚡ 代数与不等式 · Algebra & Inequalities
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `SolveInequality.py` | 解不等式 | `SolveInequalityProblem` |
-| `SolveInequalityProblem.py` | 不等式问题 | `SolveInequalityProblem` |
-| `MultiLinearRecurrence.py` | 多元线性递推 | `MultiLinearRecurrence` |
+| `algebra/SolveInequality.py` | 解不等式 | `SolveInequalityProblem` |
+| `algebra/SolveInequalityProblem.py` | 不等式问题 | `SolveInequalityProblem` |
+| `algebra/MultiLinearRecurrence.py` | 多元线性递推 | `MultiLinearRecurrence` |
 
 ### 🤖 算法 · Algorithms
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `BinarySearchExplanation.py` | 二分查找 | `BinarySearchExplanation` |
-| `OPENGL.py` | 二分查找（OpenGL 交互版） | `BinarySearchDemo` |
+| `algorithms/BinarySearchExplanation.py` | 二分查找 | `BinarySearchExplanation` |
+| `algorithms/OPENGL.py` | 二分查找（OpenGL 交互版） | `BinarySearchDemo` |
 
 ### 🧪 示例与测试 · Examples & Tests
 
 | 脚本 · Script | 主题 · Topic | 场景类 · Scene |
 | --- | --- | --- |
-| `SquareToCircle.py` | 方变圆（入门示例） | `SquareToCircle` |
-| `sample.py` | 变换示例 | `TransformExample` |
-| `new.py` | 三角函数 3D（草稿） | `TrigCircle3D` |
-| `TA.py` / `Test.py` | 测试场景 | `Test` |
-| `cirecle.py` / `test2.py` | 草稿与测试 | `Tem` / `EulerFormulaProof` |
+| `examples/SquareToCircle.py` | 方变圆（入门示例） | `SquareToCircle` |
+| `examples/sample.py` | 变换示例 | `TransformExample` |
+| `examples/new.py` | 三角函数 3D（草稿） | `TrigCircle3D` |
+| `examples/TA.py` / `examples/Test.py` | 测试场景 | `Test` |
+| `examples/cirecle.py` / `examples/test2.py` | 草稿与测试 | `Tem` / `EulerFormulaProof` |
 
 ---
 
@@ -183,7 +184,7 @@ manim -pqk <script>.py <SceneClass>
 **示例：** 渲染拉格朗日中值定理动画
 
 ```bash
-manim -pql LagrangeMeanValueTheorem.py LagrangeMeanValueTheorem
+manim -pql calculus/LagrangeMeanValueTheorem.py LagrangeMeanValueTheorem
 ```
 
 | 参数 | 含义 |
@@ -227,7 +228,15 @@ manimce code/
 ├── .gitignore                        # Git 忽略规则
 ├── custom_config.yml                 # Manim 自定义配置
 │
-├── *.py                              # 各数学主题的动画脚本（53+）
+├── calculus/                         # 微积分与实分析（7 个脚本）
+├── linear_algebra/                   # 线性代数（8 个脚本）
+├── complex_analysis/                 # 复分析（2 个脚本）
+├── ode/                              # 常微分方程（7 个脚本）
+├── geometry/                         # 几何与曲线（15 个脚本）
+├── coordinate_transform/             # 坐标变换与可视化（3 个脚本）
+├── algebra/                          # 代数与不等式（3 个脚本）
+├── algorithms/                       # 算法（2 个脚本）
+├── examples/                         # 示例与测试（7 个脚本）
 │
 ├── media/                            # 渲染输出（gitignore）
 │   ├── videos/                       #   视频文件
@@ -272,7 +281,7 @@ manimce code/
 - 🎨 **改进** — 对现有动画的视觉效果、代码结构有改进建议？欢迎 PR
 - 📖 **文档** — 发现文档错误或不清晰的地方，随时修正
 
-新增脚本时请尽量遵循现有的代码风格和命名规范。可以参考 [SquareToCircle.py](SquareToCircle.py) 作为入门模板。
+新增脚本时请尽量遵循现有的代码风格和命名规范。可以参考 [examples/SquareToCircle.py](examples/SquareToCircle.py) 作为入门模板。
 
 ---
 
