@@ -151,12 +151,46 @@ Each `.py` file is a complete animation for one mathematical topic, designed as 
 
 ## 🚀 快速开始 · Getting Started
 
-### 1. 安装 ManimCommunity
+### 1. 配置 Conda 环境（推荐）
+
+本仓库强烈推荐使用 **Conda** 管理 Python 环境，避免污染系统 Python。以下以 **Miniforge**（轻量级 conda）为例。
+
+> **为什么用 Conda？** Manim 依赖 LaTeX + FFmpeg + 大量 Python 包，conda 可以将所有依赖隔离在独立环境中，不会污染 C 盘或系统 Python。
+
+#### 1.1 安装 Miniforge
+
+从 [Miniforge Releases](https://github.com/conda-forge/miniforge/releases) 下载并安装到 **D 盘**（或其他非 C 盘位置）：
 
 ```bash
-pip install manim
+# Windows 示例：安装到 D:\Application\miniforge
+# 下载 Miniforge3-Windows-x86_64.exe，安装路径选择 D:\Application\miniforge
 ```
 
+#### 1.2 创建 Manim 专用环境
+
+```bash
+# 创建名为 manimce 的环境（Python 3.10+）
+conda create -n manimce python=3.10
+
+# 激活环境
+conda activate manimce
+```
+
+#### 1.3 在环境中安装 ManimCommunity
+
+```bash
+# 确保已激活 manimce 环境
+conda activate manimce
+
+# 安装 manim（社区版）
+pip install --no-user manim
+
+# 验证安装
+manim --version
+```
+
+> ⚠️ **重要：** `pip install` 必须加 `--no-user`，否则包可能泄漏到 C 盘 `AppData` 目录。
+>
 > **注意：** 这不是 Grant 原始仓库中的 `manimgl`，而是社区维护版。两者不兼容，本仓库所有脚本均基于 ManimCommunity 编写。
 >
 > **Note:** This is the community-maintained `manim` (ManimCommunity), NOT Grant's original `manimgl`. The two are incompatible. All scripts in this repo are written for ManimCommunity.
@@ -168,9 +202,37 @@ pip install manim
 | **LaTeX** (MiKTeX / TeX Live) | 数学公式渲染 | [miktex.org](https://miktex.org/) / [tug.org/texlive](https://tug.org/texlive/) |
 | **FFmpeg** | 视频编码 | [ffmpeg.org](https://ffmpeg.org/) |
 
-### 3. 渲染动画
+### 3. Conda 环境管理速查
+
+以下是日常使用中最常用的 conda 命令：
 
 ```bash
+# ——— 环境管理 ———
+conda env list                       # 列出所有 conda 环境
+conda create -n manimce python=3.10  # 创建新环境
+conda activate manimce               # 激活环境（进入环境）
+conda deactivate                     # 退出当前环境
+conda remove -n manimce --all        # 删除环境（谨慎操作）
+
+# ——— 包管理（在激活环境后使用）———
+pip install --no-user <pkg>          # 安装 Python 包
+pip install --no-user --upgrade manim # 升级 manim 到最新版
+pip list                             # 查看已安装的包
+conda list                           # 查看 conda 环境中的所有包
+
+# ——— 环境导出与恢复 ———
+conda env export -n manimce > environment.yml  # 导出环境配置
+conda env create -f environment.yml            # 从配置重建环境
+```
+
+> 💡 **小贴士：** 每次打开新终端运行 manim 前，记得先 `conda activate manimce`。可以把它加到你的 shell 配置文件中自动执行。
+
+### 4. 渲染动画
+
+```bash
+# 确保已在 manimce 环境中
+conda activate manimce
+
 # 低质量快速预览（开发用）
 manim -pql <script>.py <SceneClass>
 
@@ -195,7 +257,7 @@ manim -pql calculus/LagrangeMeanValueTheorem.py LagrangeMeanValueTheorem
 | `-qk` | 4K 超高清 |
 | `<SceneClass>` | 场景类名，参见上方表格 |
 
-### 4. 一次渲染多个场景
+### 5. 一次渲染多个场景
 
 如果想批量渲染，可以写一个简单的脚本：
 
@@ -214,6 +276,8 @@ for script, scene in scripts:
 ```
 
 ```bash
+# 确保在 manimce 环境中运行
+conda activate manimce
 python render_all.py
 ```
 
