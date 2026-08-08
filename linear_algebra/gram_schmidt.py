@@ -615,8 +615,7 @@ SCENES = [
     "Scene4Step2Projection",
     "Scene5Step3Subtract",
     "Scene6Step4Normalize",
-    "Scene8ThreeDimExample",   # 三维推广 → 总结之前
-    "Scene7Summary",           # 总结收尾
+    "Scene7Summary",
 ]
 
 QUALITY = {
