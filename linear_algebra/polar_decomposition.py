@@ -161,11 +161,11 @@ class Scene01_Intro(Scene):
         self.wait(2.0)
 
         # 右侧：A = U P 公式
-        a_eq = eq("A", size=72, color=WHITE)
+        a_eq = eq("A", size=58, color=WHITE)
         up_eq = MathTex(
             "A=", r"\underbrace{U}_{\text{旋转}}",
             r"\cdot", r"\underbrace{P}_{\text{拉伸}}",
-            font_size=72,
+            font_size=58,
             substrings_to_isolate=["U", "P"],
         )
         # 给 U / P 上色
@@ -174,9 +174,8 @@ class Scene01_Intro(Scene):
                 sub.set_color(C_U)
             elif sub.get_tex_string() == "P":
                 sub.set_color(C_P)
-        # underbrace 块也会上色（整体继承内部颜色）
-        formula = VGroup(a_eq, up_eq).arrange(RIGHT, buff=0.6)
-        formula.move_to(RIGHT * 3.5 + UP * 0.8)
+        formula = VGroup(a_eq, up_eq).arrange(RIGHT, buff=0.5)
+        formula.to_edge(RIGHT, buff=1.2).shift(UP * 0.8)
         self.play(Write(formula), run_time=2.0)
         self.wait(1.5)
 
@@ -192,15 +191,13 @@ class Scene01_Intro(Scene):
         """左侧：A 作用于网格与单位圆。"""
         plane = NumberPlane(
             x_range=[-3, 3, 1], y_range=[-3, 3, 1],
-            x_length=6, y_length=6,
+            x_length=5, y_length=5,
             background_line_style={"stroke_color": GREY_A,
                                    "stroke_opacity": 0.4,
                                    "stroke_width": 1},
             axis_config={"stroke_color": "#888888", "stroke_width": 1.5},
-        ).shift(LEFT * 3.5)
-        # 把原点对齐到屏幕坐标 (0,0) 处
-        origin = plane.c2p(0, 0)
-        plane.shift(LEFT * 3.5 - origin)
+        )
+        plane.to_edge(LEFT, buff=1.8)
         label = cn("A 的一次作用", size=24, color=WHITE)
         label.next_to(plane, DOWN, buff=0.3)
 
@@ -316,34 +313,28 @@ class Scene02_RightPolar(LinearTransformationScene):
         self.play(FadeOut(label), run_time=0.4)
 
     def _stage_overlap(self):
-        """分屏对比：一步到位 vs 分步执行，精确重合。
+        """精确重合验证：对原始单位圆独立施加 A 的精确计算结果。
 
         当前画面 = 分步执行 U·P 后的网格、单位圆与基向量。
-        叠加层 = 对原始单位圆独立施加 A 的精确计算结果（lin2(A_MAT)）。
-        由于 A = U·P 数值严格相等，两步像完全重合——绝无视觉手动微调。
+        叠加层 = 对原始单位圆独立计算 A 的像（lin2(A_MAT)），
+        再 FadeIn 到当前画面。由于 A = U·P 数值严格相等，
+        叠加圆精确落在当前单位圆的位置上——绝无视觉手动微调。
         """
-        caption = cn("分步执行  U·P   与   一步到位  A\n结果完全重合",
-                     size=28, color=GOLD, weight=BOLD).to_edge(UP, buff=0.4)
+        caption = cn("分步  U·P   与   一步到位  A\n结果完全重合",
+                     size=24, color=GOLD, weight=BOLD).to_edge(UP, buff=0.4)
         self.play(FadeIn(caption, shift=0.2 * UP), run_time=0.8)
 
         # 一步到位 A 的精确像（基于矩阵运算）
-        a_plane = NumberPlane(
-            x_range=[-4, 4, 1], y_range=[-4, 4, 1],
-            background_line_style={
-                "stroke_color": WHITE, "stroke_opacity": 0.35, "stroke_width": 1,
-            },
-            axis_config={"stroke_color": WHITE, "stroke_width": 1.5},
-        )
-        a_plane.apply_function(lin2(A_MAT))
         a_circle = UNIT_CIRCLE.copy()
         a_circle.apply_function(lin2(A_MAT))
-        a_circle.set_style(stroke_color=WHITE, stroke_width=4.0,
-                           fill_color=WHITE, fill_opacity=0.18)
-        overlay = VGroup(a_plane, a_circle)
+        a_circle.set_style(
+            stroke_color=WHITE, stroke_width=4.0,
+            fill_color=WHITE, fill_opacity=0.18,
+        )
 
-        self.play(FadeIn(overlay, run_time=1.2))
+        self.play(FadeIn(a_circle, run_time=1.2))
         self.wait(2.0)
-        self.play(FadeOut(overlay), run_time=0.5)
+        self.play(FadeOut(a_circle), run_time=0.5)
         self.play(FadeOut(caption), run_time=0.4)
 
 
@@ -357,8 +348,8 @@ class Scene03_LeftVsRight(Scene):
         self._add_compare_header()
 
         # ---- 左半屏：右极分解  A = U P（先拉伸后旋转）----
-        left_title = cn("右极分解  A = U P", size=28, color=WHITE, weight=BOLD)
-        left_title.to_corner(UL, buff=0.6)
+        left_title = cn("右极分解  A = U P", size=24, color=WHITE, weight=BOLD)
+        left_title.to_corner(UL, buff=0.5)
         self.play(Write(left_title))
         self.wait(0.6)
 
@@ -366,13 +357,13 @@ class Scene03_LeftVsRight(Scene):
         self._play_step(
             "先拉伸", "后旋转",
             C_P, C_U, P_MAT, U_MAT,
-            shift=LEFT * 3.6,
+            shift=LEFT * 3.0,
         )
         self.wait(1.0)
 
         # ---- 右半屏：左极分解  A = P' U'（先旋转后拉伸）----
-        right_title = cn("左极分解  A = P' U'", size=28, color=WHITE, weight=BOLD)
-        right_title.to_corner(UR, buff=0.6)
+        right_title = cn("左极分解  A = P' U'", size=24, color=WHITE, weight=BOLD)
+        right_title.to_corner(UR, buff=0.5)
         self.play(Write(right_title))
         self.wait(0.6)
 
@@ -380,14 +371,14 @@ class Scene03_LeftVsRight(Scene):
         self._play_step(
             "先旋转", "后拉伸",
             C_U, C_P, U_MAT, PL_MAT,
-            shift=RIGHT * 3.6,
+            shift=RIGHT * 3.0,
         )
         self.wait(1.5)
 
         # ---- 结论 ----
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         note = cn("矩阵乘法不可交换，但通过调整拉伸方向可达到等价效果",
-                  size=30, color=GOLD, weight=BOLD).to_edge(DOWN, buff=0.6)
+                  size=24, color=GOLD, weight=BOLD).to_edge(DOWN, buff=0.5)
         self.play(FadeIn(note, shift=0.2 * UP), run_time=0.8)
         self.wait(3.0)
 
@@ -399,10 +390,10 @@ class Scene03_LeftVsRight(Scene):
         return header
 
     def _play_step(self, step1, step2, c1, c2, m1, m2, shift=ORIGIN):
-        """在 (标题, shift) 位置画网格 + 单位圆，依次播放两步变换。"""
+        """在 shift 位置画网格 + 单位圆，依次播放两步变换。"""
         plane = NumberPlane(
             x_range=[-3, 3, 1], y_range=[-3, 3, 1],
-            x_length=5, y_length=5,
+            x_length=4, y_length=4,
             background_line_style={"stroke_color": GREY_A,
                                    "stroke_opacity": 0.4,
                                    "stroke_width": 1},
@@ -466,7 +457,7 @@ class Scene04_ThreeD(ThreeDScene):
 
         axes = ThreeDAxes(
             x_range=[-3, 3, 1], y_range=[-3, 3, 1], z_range=[-3, 3, 1],
-            x_length=6, y_length=6, z_length=6,
+            x_length=5, y_length=5, z_length=5,
             axis_config={"stroke_color": GREY_A, "stroke_width": 1.5,
                          "color": GREY_A},
         )
@@ -522,7 +513,7 @@ class Scene04_ThreeD(ThreeDScene):
         self.wait(1.5)
 
         note = cn("A = U · P   拉伸成椭球 → 刚体旋转至目标位形",
-                  size=26, color=GREY_A).to_edge(DOWN, buff=0.5)
+                  size=22, color=GREY_A).to_edge(DOWN, buff=0.4)
         self.add_fixed_in_frame_mobjects(note)
         self.play(FadeIn(note, shift=0.2 * UP))
         self.wait(2.0)
@@ -544,11 +535,11 @@ class Scene05_SVD_Teaser(Scene):
         self.wait(1.0)
 
         points = VGroup(
-            cn("图形学：旋转 + 缩放 = 刚体运动 × 形变", size=28),
-            cn("连续介质力学：形变梯度的极分解", size=28),
-            cn("任意可逆矩阵都能写成  U·P", size=28),
-        ).arrange(DOWN, buff=0.5)
-        points.next_to(title, DOWN, buff=1.0)
+            cn("图形学：旋转 + 缩放 = 刚体运动 × 形变", size=24),
+            cn("连续介质力学：形变梯度的极分解", size=24),
+            cn("任意可逆矩阵都能写成  U·P", size=24),
+        ).arrange(DOWN, buff=0.45)
+        points.next_to(title, DOWN, buff=0.8)
         for p in points:
             self.play(FadeIn(p, shift=0.2 * UP))
             self.wait(0.6)
@@ -558,7 +549,7 @@ class Scene05_SVD_Teaser(Scene):
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         p_formula = MathTex(
             r"P = V \Sigma V^\top",
-            font_size=56, color=C_P,
+            font_size=48, color=C_P,
             substrings_to_isolate=[r"V", r"\Sigma", r"V^\top"],
         )
         # 给 V 与 Σ 上色
@@ -577,7 +568,7 @@ class Scene05_SVD_Teaser(Scene):
         # ---- SVD 彩蛋 ----
         svd = MathTex(
             r"A = U \Sigma V^\top",
-            font_size=64, color=C_A,
+            font_size=52, color=C_A,
             substrings_to_isolate=["U", r"\Sigma", r"V^\top"],
         )
         for sub in svd.submobjects:
@@ -589,7 +580,7 @@ class Scene05_SVD_Teaser(Scene):
                 sub.set_color(C_ACCENT)
         svd.to_edge(DOWN, buff=1.0)
         self.play(Write(svd), run_time=2.0)
-        svd_note = cn("SVD：极分解的推广（下期预告）", size=28, color=GREY_A)
-        svd_note.next_to(svd, DOWN, buff=0.4)
+        svd_note = cn("SVD：极分解的推广（下期预告）", size=24, color=GREY_A)
+        svd_note.next_to(svd, DOWN, buff=0.35)
         self.play(FadeIn(svd_note, shift=0.2 * UP))
         self.wait(3.0)
