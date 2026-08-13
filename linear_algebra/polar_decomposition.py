@@ -1,7 +1,15 @@
 """
 Matrix Polar Decomposition geometric - Manim Community Edition v0.21.0.
 
-Render:
+Render (一键渲染所有场景):
+    conda activate manimce
+    cd "D:\manim\Code\manimce code"
+    manim -ql -a linear_algebra/polar_decomposition.py   # 快速预览 480p15
+    manim -qm -a linear_algebra/polar_decomposition.py   # 中清 720p30
+    manim -qh -a linear_algebra/polar_decomposition.py   # 高清 1080p60
+    manim -qk -a linear_algebra/polar_decomposition.py   # 4K 2160p60
+
+Render (单个场景):
     conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolarHook
     conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolar2D
     conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolarLeftRight
