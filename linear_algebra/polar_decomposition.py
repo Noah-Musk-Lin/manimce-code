@@ -215,9 +215,9 @@ class ScenePolarLeftRight(LinearTransformationScene):
         self.add_foreground_mobject(title)
 
         # Two equation rows top-right
-        right_eq = MathTex(r"A = U", "P", r"\;\text{(先 }P\text{ 后 }U\text{)}")
+        right_eq = MathTex(r"A = U", "P", r"\;\text{(first }P\text{ then }U\text{)}")
         right_eq[1].set_color(C_P)
-        left_eq = MathTex(r"A = P'", "U", r"\;\text{(先 }U\text{ 后 }P'\text{)}")
+        left_eq = MathTex(r"A = P'", "U", r"\;\text{(first }U\text{ then }P'\text{)}")
         left_eq[0].set_color(C_P)
         left_eq[1].set_color(C_P)
         eqs = VGroup(right_eq, left_eq).arrange(DOWN, buff=0.2, aligned_edge=LEFT)
@@ -294,7 +294,8 @@ class ScenePolar3D(ThreeDScene):
         self.wait(0.5)
 
         sphere = Sphere(radius=1.0, resolution=(24, 16))
-        sphere.set_color(GREEN_E, opacity=0.35)
+        sphere.set_color(GREEN_E)
+        sphere.set_opacity(0.35)
         sphere.set_stroke(GREEN_E, width=1)
         sphere.save_state()
         self.play(FadeIn(sphere, shift=UP * 0.3), run_time=1.0)
