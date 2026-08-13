@@ -1,586 +1,392 @@
-# -*- coding: utf-8 -*-
 """
-矩阵的极分解 (Polar Decomposition) —— ManimCE 动画脚本
+Matrix Polar Decomposition geometric - Manim Community Edition v0.21.0.
 
-数学背景：任何实矩阵 A 都可分解为 A = U P，
-其中 P 为对称半正定矩阵（拉伸/缩放部分），U 为正交矩阵（旋转/翻转部分）。
+Render:
+    conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolarHook
+    conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolar2D
+    conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolarLeftRight
+    conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolar3D
+    conda run -n manimce manim -pql "manimce code/linear_algebra/polar_decomposition.py" ScenePolarSVD
 
-本脚本严格遵循约定：
-    P = (AᵀA)^{1/2}   对称半正定，负责"先拉伸"
-    U = A P^{-1}      正交，负责"后旋转"
-满足  A = U P  （列向量右乘约定，顺序不可交换！）
-
-用法：
-    manim -pql polar_decomposition.py Scene01_Intro
-    manim -pql polar_decomposition.py Scene02_RightPolar
-    manim -pql polar_decomposition.py Scene03_LeftVsRight
-    manim -pql polar_decomposition.py Scene04_ThreeD
-    manim -pql polar_decomposition.py Scene05_SVD_Teaser
-
-场景顺序 (对应 Plan/polar_decomposition_manim_plan.yaml):
-    1.  Scene01_Intro        引入与直觉 (The Hook)
-    2.  Scene02_RightPolar   核心 2D 演示：A = U P，分步变形 + 精确重合
-    3.  Scene03_LeftVsRight  左极分解 vs 右极分解
-    4.  Scene04_ThreeD       升维拓展：三维球面 → 椭球 → 旋转
-    5.  Scene05_SVD_Teaser   总结与延伸：极分解与 SVD 的联系
-
-色彩约定（全局严格一致）：
-    P  拉伸相关  →  ORANGE
-    U  旋转相关  →  BLUE
-    A  复合矩阵  →  WHITE
+Strict math (asserted at import):
+    Right polar   A = U P  (P stretches, then U rotates); acts as x -> U(P x)
+    Left polar    A = P' U, where P' = U P U^T (symmetric positive definite).
+ManimCE Mobject.apply_matrix(M) does points @ M.T, so applying P then U equals one A = UP.
 """
-
 from manim import *
-from manim.utils.tex import TexTemplate
 import numpy as np
 
-config.background_color = "#0B0E14"
-config.frame_width = 14.22
-config.frame_height = 8.0
-
-
-class CJKTexTemplate(TexTemplate):
-    """支持中文标注的 LaTeX 模板（公式内 \text{旋转} 等）。"""
-
-    def __init__(self):
-        super().__init__()
-        self.add_to_preamble(r"\usepackage[UTF8]{ctex}")
-
-
-config.tex_template = CJKTexTemplate()
-
-# ---- 颜色 ----
+# Color convention from Plan: P = stretch = ORANGE, U = rotation = BLUE
+C_P = ORANGE
+CU = BLUE
+C_A = GREEN
 CN_FONT = "Microsoft YaHei"
-C_P = ORANGE        # 拉伸（P 相关）
-C_U = BLUE          # 旋转（U 相关）
-C_A = WHITE         # 复合矩阵 A
-C_ACCENT = YELLOW   # 强调
-
-# ============================================================
-# 数学常数（极分解）
-# ============================================================
-# 右极分解：A = U · P
-# P = (AᵀA)^{1/2}，U = A·P^{-1}
-A_MAT = np.array([[0.0, -1.0], [2.0, 0.0]])          # 逆时针旋转90° ∘ X轴拉伸2倍
-P_MAT = np.array([[2.0, 0.0], [0.0, 1.0]])           # 半正定：X 轴拉伸 2 倍
-U_MAT = np.array([[0.0, -1.0], [1.0, 0.0]])          # 正交：逆时针旋转 90°
-UP_MAT = U_MAT @ P_MAT                                # 精确等于 A_MAT
-
-# 左极分解：A = P' · U'
-# P' = (A Aᵀ)^{1/2}，U' = A^{-1}·P'（沿旋转后的新坐标轴拉伸）
-PL_MAT = np.array([[1.0, 0.0], [0.0, 2.0]])          # 半正定：Y 轴拉伸 2 倍
-UL_MAT = np.array([[0.0, -1.0], [1.0, 0.0]])          # 正交：逆时针旋转 90°
-
-# ---- 数学恒等式断言（代码级保证，绝不依赖视觉微调）----
-assert np.allclose(U_MAT @ P_MAT, A_MAT), "右极分解 A = U·P 必须严格成立"
-assert np.allclose(PL_MAT @ UL_MAT, A_MAT), "左极分解 A = P'·U' 必须严格成立"
-assert np.allclose(P_MAT, P_MAT.T), "P 必须对称半正定"
-assert np.allclose(PL_MAT, PL_MAT.T), "P' 必须对称半正定"
-assert np.allclose(U_MAT @ U_MAT.T, np.eye(2)), "U 必须正交"
-assert np.allclose(UL_MAT @ UL_MAT.T, np.eye(2)), "U' 必须正交"
-
-# ---- 辅助函数 ----
-def cn(text, size=28, color=C_A, weight=NORMAL, **kw):
-    """中文字体文本（绝不用 MathTex 放中文）。"""
-    return Text(text, font=CN_FONT, font_size=size, color=color, weight=weight, **kw)
 
 
-def eq(tex, size=36, color=C_A, **kw):
-    """LaTeX 公式。"""
-    kw.pop("weight", None)
-    return MathTex(tex, font_size=size, color=color, **kw)
+def cn(txt, **kw):
+    return Text(txt, font=CN_FONT, **kw)
 
 
-def banner(text, color, size=24):
-    """彩色圆角矩形标签。"""
-    tag = cn(text, size=size, color="#0B0E14", weight=BOLD)
-    box = RoundedRectangle(
-        corner_radius=0.09,
-        fill_color=color,
-        fill_opacity=1,
-        stroke_width=0,
-        width=tag.width + 0.6,
-        height=tag.height + 0.30,
-    )
-    tag.move_to(box)
-    return VGroup(box, tag)
+# Core matrices (strictly from the YAML)
+P = np.array([[2.0, 0.0], [0.0, 1.0]])
+U = np.array([[0.0, -1.0], [1.0, 0.0]])
+A = U @ P
+PPRIME = U @ P @ U.T  # left polar stretch matrix = [[1,0],[0,2]]
+
+assert np.allclose(A, np.array([[0.0, -1.0], [2.0, 0.0]])), "A != U@P"
+assert np.allclose(U @ U.T, np.eye(2)), "U must be orthogonal"
+assert np.allclose(P, P.T), "P must be symmetric"
+assert np.allclose(PPRIME, PPRIME.T), "P' must be symmetric"
+assert np.allclose(A, PPRIME @ U), "left polar A = P' U failed"
+
+# 3D matrices: rotate 60 deg about Z, then diagonal stretch
+_th = np.deg2rad(60.0)
+P3 = np.diag([1.6, 1.2, 0.6])
+U3 = np.array([
+    [np.cos(_th), -np.sin(_th), 0.0],
+    [np.sin(_th), np.cos(_th), 0.0],
+    [0.0, 0.0, 1.0],
+])
+A3 = U3 @ P3
+assert np.allclose(U3 @ U3.T, np.eye(3)), "U3 must be orthogonal"
 
 
-# 单位圆（用于显示拉伸 / 旋转的几何效果）
-UNIT_CIRCLE = Circle(
-    radius=1.0,
-    color=C_ACCENT,
-    stroke_width=3.5,
-    fill_color=C_ACCENT,
-    fill_opacity=0.10,
-)
-
-
-def lin2(mat):
-    """二维线性变换（列向量右乘约定，与 apply_matrix 一致）。"""
-    m = np.array(mat, dtype=float)
-
-    def func(p):
-        return np.array([m[0, 0] * p[0] + m[0, 1] * p[1],
-                         m[1, 0] * p[0] + m[1, 1] * p[1], 0.0])
-
-    return func
-
-
-def lin3(mat):
-    """三维线性变换（列向量右乘约定）。"""
-    m = np.array(mat, dtype=float)
-
-    def func(p):
-        return np.array([m[0, 0] * p[0] + m[0, 1] * p[1] + m[0, 2] * p[2],
-                         m[1, 0] * p[0] + m[1, 1] * p[1] + m[1, 2] * p[2],
-                         m[2, 0] * p[0] + m[2, 1] * p[1] + m[2, 2] * p[2]])
-
-    return func
-
-
-# ============================================================
-# Scene 1  引入与直觉 (The Hook)
-# ============================================================
-class Scene01_Intro(Scene):
-    """The Hook：复杂变换 = 拉伸 + 旋转"""
-
-    def construct(self):
-        title = cn("矩阵的极分解", size=56, color=GOLD, weight=BOLD)
-        sub = cn("任何线性变换，都只包含两步动作：拉伸 与 旋转",
-                 size=30, color=GREY_A)
-        title_group = VGroup(title, sub).arrange(DOWN, buff=0.3)
-        self.play(Write(title), run_time=1.5)
-        self.play(FadeIn(sub, shift=0.3 * UP))
-        self.wait(1.0)
-        self.play(VGroup(title_group).animate.to_edge(UP, buff=0.4),
-                  run_time=1.0)
-
-        # 左侧：复杂变换 A 的几何效果（单步）
-        left_panel = self._left_complex_transform()
-        self.wait(2.0)
-
-        # 右侧：A = U P 公式
-        a_eq = eq("A", size=58, color=WHITE)
-        up_eq = MathTex(
-            "A=", r"\underbrace{U}_{\text{旋转}}",
-            r"\cdot", r"\underbrace{P}_{\text{拉伸}}",
-            font_size=58,
-            substrings_to_isolate=["U", "P"],
-        )
-        # 给 U / P 上色
-        for sub in up_eq.submobjects:
-            if sub.get_tex_string() == "U":
-                sub.set_color(C_U)
-            elif sub.get_tex_string() == "P":
-                sub.set_color(C_P)
-        formula = VGroup(a_eq, up_eq).arrange(RIGHT, buff=0.5)
-        formula.to_edge(RIGHT, buff=1.2).shift(UP * 0.8)
-        self.play(Write(formula), run_time=2.0)
-        self.wait(1.5)
-
-        # 底部结论
-        note = cn("左图 = 一次复合；右图 = 把它拆成两小步",
-                  size=28, color=GREY_A).to_edge(DOWN, buff=0.5)
-        self.play(FadeIn(note, shift=0.2 * UP))
-        self.wait(2.0)
-
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.8)
-
-    def _left_complex_transform(self):
-        """左侧：A 作用于网格与单位圆。"""
-        plane = NumberPlane(
-            x_range=[-3, 3, 1], y_range=[-3, 3, 1],
-            x_length=5, y_length=5,
-            background_line_style={"stroke_color": GREY_A,
-                                   "stroke_opacity": 0.4,
-                                   "stroke_width": 1},
-            axis_config={"stroke_color": "#888888", "stroke_width": 1.5},
-        )
-        plane.to_edge(LEFT, buff=1.8)
-        label = cn("A 的一次作用", size=24, color=WHITE)
-        label.next_to(plane, DOWN, buff=0.3)
-
-        circle = UNIT_CIRCLE.copy().move_to(plane.get_center())
-        self.play(FadeIn(plane, shift=DOWN * 0.5), run_time=1.2)
-        self.play(Create(circle), run_time=1.2)
-        self.play(FadeIn(label, shift=0.2 * UP))
-        self.wait(0.8)
-
-        # A 的矩阵作用（列向量右乘约定，精确计算）
-        self.play(
-            plane.animate.apply_function(lin2(A_MAT)),
-            circle.animate.apply_function(lin2(A_MAT)),
-            run_time=2.5,
-        )
-        self.wait(1.5)
-        return VGroup(plane, circle, label)
-
-
-# ============================================================
-# Scene 2  核心 2D 演示：A = U P（右极分解）
-# ============================================================
-class Scene02_RightPolar(LinearTransformationScene):
-    """核心 2D 演示：A = U P，分步变形 + 精确重合"""
+# ===========================================================================
+# Scene 1: The Hook
+# ===========================================================================
+class ScenePolarHook(LinearTransformationScene):
+    """Any complex linear transform = stretch + rotation -> A = U P."""
 
     def __init__(self, **kwargs):
-        super().__init__(
-            include_foreground_plane=True,
-            show_basis_vectors=True,
-            background_plane_kwargs={
-                "x_range": [-4, 4, 1],
-                "y_range": [-4, 4, 1],
-                "color": GREY_A,
-                "axis_config": {"stroke_color": "#888888", "stroke_width": 1.5},
-                "background_line_style": {
-                    "stroke_color": GREY_A,
-                    "stroke_opacity": 0.4,
-                    "stroke_width": 1,
-                },
-            },
-            foreground_plane_kwargs={
-                "x_range": [-4, 4, 1],
-                "y_range": [-4, 4, 1],
-                "faded_line_ratio": 1,
-                "background_line_style": {
-                    "stroke_color": GREY_A,
-                    "stroke_opacity": 0.35,
-                    "stroke_width": 1,
-                },
-                "axis_config": {"stroke_color": "#888888", "stroke_width": 1.5},
-            },
-            i_hat_color=C_U,
-            j_hat_color=C_P,
-            leave_ghost_vectors=False,
-            **kwargs,
-        )
+        super().__init__(show_coordinates=False, leave_ghost_vectors=False, **kwargs)
 
     def construct(self):
-        self.camera.background_color = "#0B0E14"
-        # 添加单位圆（直接入场景，随每一步矩阵精确变换）
-        self.circle = UNIT_CIRCLE.copy()
-        self.add(self.circle)
+        self.camera.background_color = "#1e1e1e"
 
-        # ---- 阶段 0：标题 ----
-        title = cn("极分解  A = U P", size=36, color=GOLD, weight=BOLD)
+        title = cn("ji fen jie A = U P".replace("ji fen jie", "极分解"), color=WHITE, font_size=42)
         title.to_edge(UP, buff=0.4)
-        sub = cn("拉伸 · 旋转 与矩阵乘法的不可交换性",
-                 size=24, color=GREY_A).next_to(title, DOWN, buff=0.2)
-        self.play(Write(title))
-        self.play(FadeIn(sub, shift=0.2 * UP))
+        self.add_foreground_mobject(title)
+        sub = cn("任何复杂线性变换 = 拉伸 + 旋转", color=GREY_B, font_size=22)
+        sub.next_to(title, DOWN, buff=0.25)
+        self.add_foreground_mobject(sub)
+
+        circle = Circle(radius=1.0, color=GREEN_E, stroke_width=4)
+        circle.set_fill(GREEN_E, opacity=0.25)
+        self.add_transformable_mobject(circle)
+
+        # A non-trivial transform: stretch + shear + rotate -> tilted long ellipse
+        M = np.array([[2.0, 1.0], [0.0, 1.2]])
+        label_A = MathTex("A", color=C_A, font_size=48)
+        label_A.to_corner(UL, buff=0.6).shift(DOWN * 1.0)
+        self.add_foreground_mobject(label_A)
+
+        self.apply_matrix(M, run_time=4)
         self.wait(0.8)
-        self.play(FadeOut(sub), run_time=0.5)
 
-        # ---- 阶段 1：A 的直接效果 ----
-        self._apply_step(A_MAT, "A 的直接效果", C_A)
-        self.wait(1.0)
-
-        # ---- 阶段 2：重置（A 的逆变换精确倒放回原状）----
-        self._apply_step(np.linalg.inv(A_MAT), "时间倒流：重置", GREY)
-        self.wait(1.0)
-
-        # ---- 阶段 3：第一步 P（拉伸）----
-        self._apply_step(P_MAT, "第一步：拉伸  P", C_P)
-        self.wait(1.0)
-
-        # ---- 阶段 4：第二步 U（旋转）----
-        self._apply_step(U_MAT, "第二步：旋转  U", C_U)
-        self.wait(1.0)
-
-        # ---- 阶段 5：对比重合 ----
-        self._stage_overlap()
-
-        self.wait(2.0)
-
-    def _apply_step(self, matrix, label_text, label_color):
-        """对 plane / 单位圆 / 基向量精确施加线性变换（列向量右乘）。
-
-        用 ApplyPointwiseFunction 逐点变换，拓扑结构不变，
-        保证数学精确且无动画插值结构错配。
-        """
-        func = lin2(matrix)
-        label = banner(label_text, label_color, size=22).to_edge(UP, buff=0.4)
-        self.play(FadeIn(label, shift=0.2 * UP), run_time=0.6)
-        self.wait(0.5)
-        self.play(
-            ApplyPointwiseFunction(func, self.plane),
-            ApplyPointwiseFunction(func, self.circle),
-            ApplyPointwiseFunction(func, self.i_hat),
-            ApplyPointwiseFunction(func, self.j_hat),
-            run_time=3.0,
-        )
-        self.wait(1.2)
-        self.play(FadeOut(label), run_time=0.4)
-
-    def _stage_overlap(self):
-        """精确重合验证：对原始单位圆独立施加 A 的精确计算结果。
-
-        当前画面 = 分步执行 U·P 后的网格、单位圆与基向量。
-        叠加层 = 对原始单位圆独立计算 A 的像（lin2(A_MAT)），
-        再 FadeIn 到当前画面。由于 A = U·P 数值严格相等，
-        叠加圆精确落在当前单位圆的位置上——绝无视觉手动微调。
-        """
-        caption = cn("分步  U·P   与   一步到位  A\n结果完全重合",
-                     size=24, color=GOLD, weight=BOLD).to_edge(UP, buff=0.4)
-        self.play(FadeIn(caption, shift=0.2 * UP), run_time=0.8)
-
-        # 一步到位 A 的精确像（基于矩阵运算）
-        a_circle = UNIT_CIRCLE.copy()
-        a_circle.apply_function(lin2(A_MAT))
-        a_circle.set_style(
-            stroke_color=WHITE, stroke_width=4.0,
-            fill_color=WHITE, fill_opacity=0.18,
-        )
-
-        self.play(FadeIn(a_circle, run_time=1.2))
-        self.wait(2.0)
-        self.play(FadeOut(a_circle), run_time=0.5)
-        self.play(FadeOut(caption), run_time=0.4)
-
-
-# ============================================================
-# Scene 3  左极分解 vs 右极分解
-# ============================================================
-class Scene03_LeftVsRight(Scene):
-    """左极分解 A = P'U'  与  右极分解 A = U P 的对比"""
-
-    def construct(self):
-        self._add_compare_header()
-
-        # ---- 左半屏：右极分解  A = U P（先拉伸后旋转）----
-        left_title = cn("右极分解  A = U P", size=24, color=WHITE, weight=BOLD)
-        left_title.to_corner(UL, buff=0.5)
-        self.play(Write(left_title))
-        self.wait(0.6)
-
-        # 右极分解的两步：拉伸（橙）→ 旋转（蓝）
-        self._play_step(
-            "先拉伸", "后旋转",
-            C_P, C_U, P_MAT, U_MAT,
-            shift=LEFT * 3.0,
-        )
-        self.wait(1.0)
-
-        # ---- 右半屏：左极分解  A = P' U'（先旋转后拉伸）----
-        right_title = cn("左极分解  A = P' U'", size=24, color=WHITE, weight=BOLD)
-        right_title.to_corner(UR, buff=0.5)
-        self.play(Write(right_title))
-        self.wait(0.6)
-
-        # 左极分解的两步：旋转（蓝）→ 沿旋转后方向拉伸（橙）
-        self._play_step(
-            "先旋转", "后拉伸",
-            C_U, C_P, U_MAT, PL_MAT,
-            shift=RIGHT * 3.0,
-        )
+        eq = MathTex("A", "=", r"U", r"P")
+        eq[0].set_color(C_A)
+        eq[2].set_color(CU)
+        eq[3].set_color(C_P)
+        eq.scale(1.6).to_corner(DR, buff=0.7)
+        eq.add_background_rectangle()
+        self.play(Write(eq), run_time=1.4)
         self.wait(1.5)
 
-        # ---- 结论 ----
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        note = cn("矩阵乘法不可交换，但通过调整拉伸方向可达到等价效果",
-                  size=24, color=GOLD, weight=BOLD).to_edge(DOWN, buff=0.5)
-        self.play(FadeIn(note, shift=0.2 * UP), run_time=0.8)
-        self.wait(3.0)
-
-    def _add_compare_header(self):
-        header = cn("左极分解 vs 右极分解", size=36, color=GOLD, weight=BOLD)
-        header.to_edge(UP, buff=0.3)
-        self.play(Write(header))
-        self.wait(0.8)
-        return header
-
-    def _play_step(self, step1, step2, c1, c2, m1, m2, shift=ORIGIN):
-        """在 shift 位置画网格 + 单位圆，依次播放两步变换。"""
-        plane = NumberPlane(
-            x_range=[-3, 3, 1], y_range=[-3, 3, 1],
-            x_length=4, y_length=4,
-            background_line_style={"stroke_color": GREY_A,
-                                   "stroke_opacity": 0.4,
-                                   "stroke_width": 1},
-            axis_config={"stroke_color": "#888888", "stroke_width": 1.5},
-        ).shift(shift + UP * 1.2)
-        origin = plane.c2p(0, 0)
-        plane.shift(shift + UP * 1.2 - origin)
-        circle = UNIT_CIRCLE.copy().move_to(plane.get_center())
-
-        self.play(FadeIn(plane), Create(circle), run_time=0.8)
-
-        # 第一步
-        s1 = banner(step1, c1, size=20).next_to(plane, DOWN, buff=0.3)
-        self.play(FadeIn(s1, shift=0.2 * UP), run_time=0.5)
-        self.play(
-            plane.animate.apply_function(lin2(m1)),
-            circle.animate.apply_function(lin2(m1)),
-            run_time=2.0,
-        )
-        self.wait(0.5)
-        self.play(FadeOut(s1), run_time=0.3)
-
-        # 第二步
-        s2 = banner(step2, c2, size=20).next_to(plane, DOWN, buff=0.3)
-        self.play(FadeIn(s2, shift=0.2 * UP), run_time=0.5)
-        self.play(
-            plane.animate.apply_function(lin2(m2)),
-            circle.animate.apply_function(lin2(m2)),
-            run_time=2.0,
-        )
-        self.wait(0.5)
-        self.play(FadeOut(s2), run_time=0.3)
-        # 保留当前画面，供左右对比
-        self.wait(1.2)
+        blue_sq = Square(side_length=0.3, color=CU, fill_opacity=1)
+        orange_sq = Square(side_length=0.3, color=C_P, fill_opacity=1)
+        leg1 = VGroup(blue_sq, cn("U = 旋转", color=CU, font_size=20)).arrange(RIGHT, buff=0.15)
+        leg2 = VGroup(orange_sq, cn("P = 拉伸", color=C_P, font_size=20)).arrange(RIGHT, buff=0.15)
+        legend = VGroup(leg1, leg2).arrange(DOWN, buff=0.15, aligned_edge=LEFT)
+        legend.to_corner(DL, buff=0.7).add_background_rectangle()
+        self.play(FadeIn(legend, shift=RIGHT), run_time=0.7)
+        self.wait(3)
 
 
-# ============================================================
-# Scene 4  3D 演示
-# ============================================================
-class Scene04_ThreeD(ThreeDScene):
-    """三维空间中的极分解"""
+# ===========================================================================
+# Scene 2: Core 2D example
+# ===========================================================================
+class ScenePolar2D(LinearTransformationScene):
+    """Right polar decomposition A = U P, step by step, then one-shot A proving coincidence."""
+
+    def __init__(self, **kwargs):
+        super().__init__(show_coordinates=True, leave_ghost_vectors=True, **kwargs)
 
     def construct(self):
-        self.camera.background_color = "#0B0E14"
-        self.set_camera_orientation(phi=70 * DEGREES, theta=-60 * DEGREES)
+        self.camera.background_color = "#1e1e1e"
 
-        # ---- 3D 矩阵（沿 x 轴拉伸2倍，y 轴 0.5 倍）----
-        P3 = np.diag([2.0, 0.5, 1.0])
-        # 绕 z 轴旋转 45°
-        th = np.pi / 4
-        R3 = np.array([[np.cos(th), -np.sin(th), 0.0],
-                       [np.sin(th), np.cos(th), 0.0],
-                       [0.0, 0.0, 1.0]])
-        A3 = R3 @ P3
+        title = cn("右极分解 A = U P (先拉伸后旋转)", color=WHITE, font_size=30)
+        title.to_edge(UP, buff=0.35)
+        self.add_foreground_mobject(title)
 
-        title = cn("三维空间中的极分解", size=36, color=GOLD, weight=BOLD)
-        title.to_edge(UP, buff=0.4)
-        self.add_fixed_in_frame_mobjects(title)
-        self.play(FadeIn(title, shift=0.2 * UP))
+        # Matrix numerics top-left
+        P_mat = Matrix([["2", "0"], ["0", "1"]], left_bracket="(", right_bracket=")")
+        P_mat.scale(0.5).to_corner(UL, buff=0.5).shift(DOWN * 0.15)
+        P_lab = MathTex("P=", color=C_P, font_size=28).next_to(P_mat, LEFT, buff=0.1)
+        for m in P_mat.get_entries():
+            m.set_color(C_P)
+
+        U_mat = Matrix([["0", "-1"], ["1", "0"]], left_bracket="(", right_bracket=")")
+        U_mat.scale(0.5).next_to(P_mat, DOWN, buff=0.3, aligned_edge=LEFT)
+        U_lab = MathTex("U=", color=CU, font_size=28).next_to(U_mat, LEFT, buff=0.1)
+        for m in U_mat.get_entries():
+            m.set_color(CU)
+
+        mat_grp = VGroup(P_lab, P_mat, U_lab, U_mat).add_background_rectangle()
+        self.add_foreground_mobject(mat_grp)
+
+        # Unit circle as intuitive prop
+        circle = Circle(radius=1.0, color=GREEN_E, stroke_width=5)
+        circle.set_fill(GREEN_E, opacity=0.3)
+        circle.save_state()
+        self.add_transformable_mobject(circle)
+
+        cap = cn("第一步: P 拉伸 (X 方向 x2)", color=C_P, font_size=24)
+        cap.to_edge(DOWN, buff=0.4).add_background_rectangle()
+        self.add_foreground_mobject(cap)
+        self.wait(0.5)
+
+        # Step 1: P stretch
+        self.apply_matrix(P, run_time=3)
+        self.wait(1.0)
+
+        cap2 = cn("第二步: U 旋转 (逆时针 90 度)", color=CU, font_size=24)
+        cap2.to_edge(DOWN, buff=0.4).add_background_rectangle()
+        self.play(Transform(cap, cap2), run_time=0.6)
+
+        # Step 2: U rotation
+        self.apply_matrix(U, run_time=3)
+        self.wait(1.0)
+
+        # Snapshot of after-two-steps shape (outline only) as the coincidence target
+        after_steps = circle.copy().set_stroke(GREEN_B, width=6).set_fill(opacity=0)
+        self.add_foreground_mobject(after_steps)
+
+        # Equation verification U P = A
+        verify = MathTex(
+            r"UP =",
+            r"\begin{bmatrix}0&-1\\1&0\end{bmatrix}",
+            r"\begin{bmatrix}2&0\\0&1\end{bmatrix}",
+            r"=\begin{bmatrix}0&-1\\2&0\end{bmatrix}=A",
+        )
+        verify.scale(0.7).to_edge(DOWN, buff=0.55).add_background_rectangle()
+        self.play(ReplacementTransform(cap, verify), run_time=1.0)
+        self.wait(2.2)
+        self.remove(verify)
+
+        # Reset the plane and circle to pristine geometry to show "one-shot A"
+        self.plane.restore()
+        circle.restore()
+        for g in list(self.ghost_vectors):
+            self.remove(g)
+        self.ghost_vectors = VGroup()
+
+        circleB = Circle(radius=1.0, color=YELLOW, stroke_width=5)
+        circleB.set_fill(YELLOW, opacity=0.25)
+        self.add_transformable_mobject(circleB)
+
+        capB = cn("直接一步: A = U P 作用于原单位圆", color=YELLOW, font_size=22)
+        capB.to_edge(DOWN, buff=0.55).add_background_rectangle()
+        self.add_foreground_mobject(capB)
+        self.wait(0.4)
+        self.apply_matrix(A, run_time=3)
+        self.wait(1.0)
+
+        ok = cn("两步 (绿轮廓) 与一步 A (黄) 完美重合: U P = A", color=GREEN_B, font_size=22)
+        ok.to_edge(DOWN, buff=0.55).add_background_rectangle()
+        self.play(ReplacementTransform(capB, ok), run_time=0.8)
+        self.wait(3)
+
+
+# ===========================================================================
+# Scene 3: Left vs Right polar decomposition
+# ===========================================================================
+class ScenePolarLeftRight(LinearTransformationScene):
+    """A = U P (right) vs A = P' U (left), illustrating non-commutativity."""
+
+    def __init__(self, **kwargs):
+        super().__init__(show_coordinates=True, leave_ghost_vectors=True, **kwargs)
+
+    def construct(self):
+        self.camera.background_color = "#1e1e1e"
+
+        title = cn("左极分解 A = P' U  vs  右极分解 A = U P", color=WHITE, font_size=28)
+        title.to_edge(UP, buff=0.3)
+        self.add_foreground_mobject(title)
+
+        # Two equation rows top-right
+        right_eq = MathTex(r"A = U", "P", r"\;\text{(先 }P\text{ 后 }U\text{)}")
+        right_eq[1].set_color(C_P)
+        left_eq = MathTex(r"A = P'", "U", r"\;\text{(先 }U\text{ 后 }P'\text{)}")
+        left_eq[0].set_color(C_P)
+        left_eq[1].set_color(C_P)
+        eqs = VGroup(right_eq, left_eq).arrange(DOWN, buff=0.2, aligned_edge=LEFT)
+        eqs.scale(0.7).to_corner(UR, buff=0.35).add_background_rectangle()
+        self.add_foreground_mobject(eqs)
+
+        # P' matrix top-left
+        pp_mat = Matrix([["1", "0"], ["0", "2"]], left_bracket="(", right_bracket=")")
+        pp_mat.scale(0.48).to_corner(UL, buff=0.4).shift(DOWN * 0.15)
+        pp_lab = MathTex(r"P'=UPU^{T}=", color=C_P, font_size=28).next_to(pp_mat, LEFT, buff=0.1)
+        for m in pp_mat.get_entries():
+            m.set_color(C_P)
+        pp_grp = VGroup(pp_lab, pp_mat).add_background_rectangle()
+        self.add_foreground_mobject(pp_grp)
+
+        circle = Circle(radius=1.0, color=YELLOW_E, stroke_width=5)
+        circle.set_fill(YELLOW_E, opacity=0.3)
+        circle.save_state()
+        self.add_transformable_mobject(circle)
+
+        cap = cn("先 U 旋转 90 度 (形状不变)", color=CU, font_size=24)
+        cap.to_edge(DOWN, buff=0.45).add_background_rectangle()
+        self.add_foreground_mobject(cap)
+        self.wait(0.5)
+
+        # Step 1: U rotation (circle shape unchanged)
+        self.apply_matrix(U, run_time=3)
         self.wait(0.8)
+
+        cap2 = cn("后 P' 沿新轴拉伸 (Y 方向 x2)", color=C_P, font_size=24)
+        cap2.to_edge(DOWN, buff=0.45).add_background_rectangle()
+        self.play(Transform(cap, cap2), run_time=0.6)
+
+        # Step 2: P' stretch
+        self.apply_matrix(PPRIME, run_time=3)
+        self.wait(1.0)
+
+        verify = MathTex(
+            r"P'U =",
+            r"\begin{bmatrix}1&0\\0&2\end{bmatrix}",
+            r"\begin{bmatrix}0&-1\\1&0\end{bmatrix}",
+            r"=\begin{bmatrix}0&-1\\2&0\end{bmatrix}=A",
+        )
+        verify.scale(0.7).to_edge(DOWN, buff=0.5).add_background_rectangle()
+        self.play(ReplacementTransform(cap, verify), run_time=1.0)
+        self.wait(2.5)
+
+        concl = cn("矩阵乘法不可交换: P != P'; 但 P' = U P U^T 通过旋转调整拉伸方向达到等价", color=GREEN_B, font_size=20)
+        concl.scale(0.85).to_edge(DOWN, buff=0.5).add_background_rectangle()
+        self.play(ReplacementTransform(verify, concl), run_time=1.0)
+        self.wait(4)
+
+
+# ===========================================================================
+# Scene 4: 3D generalization
+# ===========================================================================
+class ScenePolar3D(ThreeDScene):
+    """3D polar decomposition: sphere -> tilted ellipsoid via U3 P3."""
+
+    def construct(self):
+        self.camera.background_color = "#1e1e1e"
+        self.set_camera_orientation(phi=70 * DEGREES, theta=-55 * DEGREES)
+
+        title = cn("三维极分解: 球体的拉伸与旋转", color=WHITE, font_size=30)
+        title.to_edge(UP, buff=0.3)
+        self.add_fixed_in_frame_mobjects(title)
 
         axes = ThreeDAxes(
             x_range=[-3, 3, 1], y_range=[-3, 3, 1], z_range=[-3, 3, 1],
-            x_length=5, y_length=5, z_length=5,
-            axis_config={"stroke_color": GREY_A, "stroke_width": 1.5,
-                         "color": GREY_A},
+            x_length=6, y_length=6, z_length=6,
+            axis_config={"color": GREY_B, "stroke_width": 2},
         )
-        self.play(Create(axes), run_time=1.5)
+        self.add(axes)
+        self.wait(0.5)
 
-        sphere = Sphere(
-            radius=1.0, resolution=(16, 16),
-            fill_opacity=0.25, fill_color=C_ACCENT,
-            stroke_color=C_ACCENT, stroke_width=1.0,
-        )
-        self.play(Create(sphere), run_time=1.5)
-        self.wait(1.0)
+        sphere = Sphere(radius=1.0, resolution=(24, 16))
+        sphere.set_color(GREEN_E, opacity=0.35)
+        sphere.set_stroke(GREEN_E, width=1)
+        sphere.save_state()
+        self.play(FadeIn(sphere, shift=UP * 0.3), run_time=1.0)
+        self.wait(0.8)
 
-        # ---- 阶段 1：A 的一次作用（球 → 倾斜椭球）----
-        label_a = cn("A 的一次作用", size=26, color=WHITE, weight=BOLD)
-        label_a.to_edge(UP, buff=0.4)
-        self.add_fixed_in_frame_mobjects(label_a)
-        self.play(FadeIn(label_a, shift=0.2 * UP))
-        self.play(sphere.animate.apply_function(lin3(A3)), run_time=2.5)
-        self.wait(1.5)
-        self.remove_fixed_in_frame_mobjects(label_a)
-        self.play(FadeOut(label_a), run_time=0.4)
-
-        # ---- 阶段 2：重置（逆变换精确倒放回球）----
-        label_reset = cn("重置（时间倒流）", size=26, color=GREY, weight=BOLD)
-        label_reset.to_edge(UP, buff=0.4)
-        self.add_fixed_in_frame_mobjects(label_reset)
-        self.play(FadeIn(label_reset, shift=0.2 * UP))
-        self.play(sphere.animate.apply_function(lin3(np.linalg.inv(A3))), run_time=2.0)
-        self.wait(1.0)
-        self.remove_fixed_in_frame_mobjects(label_reset)
-        self.play(FadeOut(label_reset), run_time=0.4)
-
-        # ---- 阶段 3：分步拆解回放：先 P（拉伸成正交椭球）----
-        label_p = cn("先 P：拉伸成椭球", size=26, color=C_P, weight=BOLD)
-        label_p.to_edge(UP, buff=0.4)
-        self.add_fixed_in_frame_mobjects(label_p)
-        self.play(FadeIn(label_p, shift=0.2 * UP))
-        self.play(sphere.animate.apply_function(lin3(P3)), run_time=2.5)
-        self.wait(1.2)
-        self.remove_fixed_in_frame_mobjects(label_p)
-        self.play(FadeOut(label_p), run_time=0.4)
-
-        # ---- 阶段 4：再 U（刚体旋转至目标位形）----
-        label_u = cn("再 U：刚体旋转", size=26, color=C_U, weight=BOLD)
-        label_u.to_edge(UP, buff=0.4)
-        self.add_fixed_in_frame_mobjects(label_u)
-        self.play(FadeIn(label_u, shift=0.2 * UP))
-        self.play(sphere.animate.apply_function(lin3(R3)), run_time=2.5)
-        self.wait(1.2)
-        self.remove_fixed_in_frame_mobjects(label_u)
-        self.play(FadeOut(label_u), run_time=0.4)
+        cap = cn("整体变换 A3 = U3 P3 一步到位", color=C_A, font_size=22)
+        cap.to_edge(DOWN, buff=0.5).add_background_rectangle()
+        self.add_fixed_in_frame_mobjects(cap)
+        self.wait(0.4)
+        self.play(sphere.animate.apply_matrix(A3), run_time=4)
         self.wait(1.5)
 
-        note = cn("A = U · P   拉伸成椭球 → 刚体旋转至目标位形",
-                  size=22, color=GREY_A).to_edge(DOWN, buff=0.4)
-        self.add_fixed_in_frame_mobjects(note)
-        self.play(FadeIn(note, shift=0.2 * UP))
-        self.wait(2.0)
+        self.begin_ambient_camera_rotation(rate=0.12)
+        self.wait(2.5)
+        self.stop_ambient_camera_rotation()
 
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.8)
+        # Decompose and replay: reset, then P3, then U3
+        self.remove(cap)
+        self.play(sphere.animate.restore(), run_time=0.6)
+        self.wait(0.4)
+
+        cap_p = cn("第一步: P3 对称拉伸 -> 正交椭球", color=C_P, font_size=22)
+        cap_p.to_edge(DOWN, buff=0.5).add_background_rectangle()
+        self.add_fixed_in_frame_mobjects(cap_p)
+        self.play(sphere.animate.apply_matrix(P3), run_time=4)
+        self.wait(1.2)
+
+        self.remove(cap_p)
+        cap_u = cn("第二步: U3 刚体旋转 -> 倾斜椭球", color=CU, font_size=22)
+        cap_u.to_edge(DOWN, buff=0.5).add_background_rectangle()
+        self.add_fixed_in_frame_mobjects(cap_u)
+        self.play(sphere.animate.apply_matrix(U3), run_time=4)
+        self.wait(2)
+
+        self.begin_ambient_camera_rotation(rate=0.1)
+        self.wait(3)
+        self.stop_ambient_camera_rotation()
 
 
-# ============================================================
-# Scene 5  总结与延伸：SVD
-# ============================================================
-class Scene05_SVD_Teaser(Scene):
-    """总结 + 引出 SVD 公式"""
+# ===========================================================================
+# Scene 5: Conclusion & SVD
+# ===========================================================================
+class ScenePolarSVD(Scene):
+    """Polar decomposition and its link to SVD."""
 
     def construct(self):
-        # ---- 总结 ----
-        title = cn("极分解的意义", size=40, color=GOLD, weight=BOLD)
-        title.to_edge(UP, buff=0.4)
-        self.play(Write(title))
-        self.wait(1.0)
+        self.camera.background_color = "#1e1e1e"
 
-        points = VGroup(
-            cn("图形学：旋转 + 缩放 = 刚体运动 × 形变", size=24),
-            cn("连续介质力学：形变梯度的极分解", size=24),
-            cn("任意可逆矩阵都能写成  U·P", size=24),
-        ).arrange(DOWN, buff=0.45)
-        points.next_to(title, DOWN, buff=0.8)
-        for p in points:
-            self.play(FadeIn(p, shift=0.2 * UP))
-            self.wait(0.6)
-        self.wait(1.0)
+        head = cn("总结: 极分解与 SVD", color=WHITE, font_size=40)
+        head.to_edge(UP, buff=1.0)
+        self.play(Write(head), run_time=1.2)
+        self.wait(0.6)
 
-        # ---- P 自身的分解：P = V Σ Vᵀ ----
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        p_formula = MathTex(
-            r"P = V \Sigma V^\top",
-            font_size=48, color=C_P,
-            substrings_to_isolate=[r"V", r"\Sigma", r"V^\top"],
-        )
-        # 给 V 与 Σ 上色
-        for sub in p_formula.submobjects:
-            if sub.get_tex_string() == "V" or sub.get_tex_string() == r"V^\top":
-                sub.set_color(C_U)
-            elif sub.get_tex_string() == r"\Sigma":
-                sub.set_color(C_ACCENT)
-        p_formula.to_edge(UP, buff=1.0)
-        self.play(Write(p_formula), run_time=2.0)
-        p_note = cn("P 是对称半正定矩阵：可对角化", size=28, color=GREY_A)
-        p_note.next_to(p_formula, DOWN, buff=0.5)
-        self.play(FadeIn(p_note, shift=0.2 * UP))
+        sq1 = Square(side_length=0.25, color=C_P, fill_opacity=1)
+        sq2 = Square(side_length=0.25, color=CU, fill_opacity=1)
+        sq3 = Square(side_length=0.25, color=C_A, fill_opacity=1)
+        b1 = VGroup(sq1, cn("P = 拉伸前的纯拉伸, 对称正定", color=GREY_A, font_size=24)).arrange(RIGHT, buff=0.2)
+        b2 = VGroup(sq2, cn("U = 纯刚体旋转 (可含反射), 保形", color=GREY_A, font_size=24)).arrange(RIGHT, buff=0.2)
+        b3 = VGroup(sq3, cn("A = U P : 任何可逆线性变换的唯一拆解", color=GREY_A, font_size=24)).arrange(RIGHT, buff=0.2)
+        bullets = VGroup(b1, b2, b3).arrange(DOWN, buff=0.4, aligned_edge=LEFT)
+        bullets.next_to(head, DOWN, buff=0.9)
+        self.play(Write(bullets), run_time=2.5)
         self.wait(1.5)
 
-        # ---- SVD 彩蛋 ----
-        svd = MathTex(
-            r"A = U \Sigma V^\top",
-            font_size=52, color=C_A,
-            substrings_to_isolate=["U", r"\Sigma", r"V^\top"],
-        )
-        for sub in svd.submobjects:
-            if sub.get_tex_string() == "U":
-                sub.set_color(C_U)
-            elif sub.get_tex_string() == r"V^\top":
-                sub.set_color(C_U)
-            elif sub.get_tex_string() == r"\Sigma":
-                sub.set_color(C_ACCENT)
-        svd.to_edge(DOWN, buff=1.0)
-        self.play(Write(svd), run_time=2.0)
-        svd_note = cn("SVD：极分解的推广（下期预告）", size=24, color=GREY_A)
-        svd_note.next_to(svd, DOWN, buff=0.35)
-        self.play(FadeIn(svd_note, shift=0.2 * UP))
-        self.wait(3.0)
+        # P's own SVD-like decomposition P = V Sigma V^T
+        p_decompose = MathTex(r"P = V", r"\Sigma", r"V^{T}")
+        p_decompose[1].set_color(C_P)
+        p_decompose.scale(1.1).shift(UP * 0.2).add_background_rectangle()
+        self.play(FadeOut(bullets), run_time=0.6)
+        self.play(Write(p_decompose), run_time=1.5)
+        self.wait(1.5)
+
+        # A = U P = (U V) Sigma V^T -> classic SVD
+        svd_eq = MathTex(r"A = U", r"(V\Sigma V^{T})", r"= (UV)", r"\Sigma", r"V^{T}")
+        svd_eq[0].set_color(CU)
+        svd_eq[3].set_color(C_P)
+        svd_eq.scale(1.0).next_to(p_decompose, DOWN, buff=0.6).add_background_rectangle()
+        self.play(Write(svd_eq), run_time=2.0)
+        self.wait(2)
+
+        svd_final = MathTex(r"A = U_{\mathrm{SVD}}\,", r"\Sigma", r"\,V^{T}")
+        svd_final[0].set_color(CU)
+        svd_final[1].set_color(C_P)
+        svd_final.scale(1.4).move_to(ORIGIN + DOWN * 0.3).add_background_rectangle()
+        self.play(FadeOut(p_decompose), FadeOut(svd_eq), FadeOut(head), run_time=0.8)
+        svd_label = cn("奇异值分解 (SVD)", color=YELLOW_B, font_size=28)
+        svd_label.next_to(svd_final, UP, buff=0.4)
+        self.play(Write(svd_label), Write(svd_final), run_time=2.0)
+        self.wait(3)
+
+        nxt = cn("下期预告: 奇异值分解的完整几何动画", color=GREY_B, font_size=24)
+        nxt.next_to(svd_final, DOWN, buff=0.7)
+        self.play(FadeIn(nxt, shift=UP), run_time=1.0)
+        self.wait(3)
+        self.play(FadeOut(VGroup(svd_label, svd_final, nxt)), run_time=1.2)
+        self.wait(0.5)
