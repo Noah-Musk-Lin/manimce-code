@@ -27,6 +27,44 @@ def cn(txt, **kw):
     return Text(txt, font=CN_FONT, **kw)
 
 
+def pinned_vector_animation(vector, matrix, run_time=3.0):
+    """基向量动画：尾部严格钉在原点，头部沿"旋转+缩放"插值路径运动。
+
+    绕开 LinearTransformationScene 默认的 Transform + path_arc 机制
+    （该机制会把整个向量沿弧线摆动，中间帧尾部脱离原点，视觉上像被平移）。
+    """
+    v0 = np.asarray(vector.get_end())[:2]
+    v1 = np.asarray(matrix @ v0)[:2]
+    a0, a1 = np.arctan2(v0[1], v0[0]), np.arctan2(v1[1], v1[0])
+    r0, r1 = np.linalg.norm(v0), np.linalg.norm(v1)
+
+    def updater(m, alpha):
+        ang = interpolate(a0, a1, alpha)
+        rad = interpolate(r0, r1, alpha)
+        tip = rad * np.array([np.cos(ang), np.sin(ang), 0.0])
+        m.put_start_and_end_on(ORIGIN, tip)
+
+    return UpdateFromAlphaFunc(vector, updater, run_time=run_time)
+
+
+def pinned_apply_matrix(scene, matrix, run_time=3.0, **kwargs):
+    """替代 LinearTransformationScene.apply_matrix：
+    - 平面/可变换对象用 ApplyPointwiseFunction（逐点插值，线性精确）
+    - 基向量 i_hat/j_hat 用 pinned_vector_animation（钉住原点，无弧线摆动）
+    - 不产生 ghost vectors
+    """
+    func = scene.get_transposed_matrix_transformation(np.array(matrix).T)
+    anims = [
+        ApplyPointwiseFunction(func, t_mob)
+        for t_mob in scene.transformable_mobjects
+    ]
+    anims += [
+        pinned_vector_animation(scene.i_hat, matrix, run_time=run_time),
+        pinned_vector_animation(scene.j_hat, matrix, run_time=run_time),
+    ]
+    scene.play(*anims, run_time=run_time, **kwargs)
+
+
 # Core matrices (strictly from the YAML)
 P = np.array([[2.0, 0.0], [0.0, 1.0]])
 U = np.array([[0.0, -1.0], [1.0, 0.0]])
@@ -77,10 +115,10 @@ class ScenePolarHook(LinearTransformationScene):
         # A non-trivial transform: stretch + shear + rotate -> tilted long ellipse
         M = np.array([[2.0, 1.0], [0.0, 1.2]])
         label_A = MathTex("A", color=C_A, font_size=48)
-        label_A.to_corner(UL, buff=0.6).shift(DOWN * 1.0)
+        label_A.to_corner(UL, buff=0.5)
         self.add_foreground_mobject(label_A)
 
-        self.apply_matrix(M, run_time=4)
+        pinned_apply_matrix(self, M, run_time=4)
         self.wait(0.8)
 
         eq = MathTex("A", "=", r"U", r"P")
@@ -109,18 +147,18 @@ class ScenePolar2D(LinearTransformationScene):
     """Right polar decomposition A = U P, step by step, then one-shot A proving coincidence."""
 
     def __init__(self, **kwargs):
-        super().__init__(show_coordinates=True, leave_ghost_vectors=True, **kwargs)
+        super().__init__(show_coordinates=True, leave_ghost_vectors=False, **kwargs)
 
     def construct(self):
         self.camera.background_color = "#1e1e1e"
 
-        title = cn("右极分解 A = U P (先拉伸后旋转)", color=WHITE, font_size=30)
+        title = cn("右极分解 A = U P (先拉伸后旋转)", color=WHITE, font_size=26)
         title.to_edge(UP, buff=0.35)
         self.add_foreground_mobject(title)
 
         # Matrix numerics top-left
         P_mat = Matrix([["2", "0"], ["0", "1"]], left_bracket="(", right_bracket=")")
-        P_mat.scale(0.5).to_corner(UL, buff=0.5).shift(DOWN * 0.15)
+        P_mat.scale(0.5)
         P_lab = MathTex("P=", color=C_P, font_size=28).next_to(P_mat, LEFT, buff=0.1)
         for m in P_mat.get_entries():
             m.set_color(C_P)
@@ -132,6 +170,7 @@ class ScenePolar2D(LinearTransformationScene):
             m.set_color(CU)
 
         mat_grp = VGroup(P_lab, P_mat, U_lab, U_mat).add_background_rectangle()
+        mat_grp.to_corner(UL, buff=0.5).shift(RIGHT * 0.6 + DOWN * 0.5)
         self.add_foreground_mobject(mat_grp)
 
         # Unit circle as intuitive prop
@@ -139,6 +178,8 @@ class ScenePolar2D(LinearTransformationScene):
         circle.set_fill(GREEN_E, opacity=0.3)
         circle.save_state()
         self.plane.save_state()
+        self.i_hat.save_state()
+        self.j_hat.save_state()
         self.add_transformable_mobject(circle)
 
         cap = cn("第一步: P 拉伸 (X 方向 x2)", color=C_P, font_size=24)
@@ -147,7 +188,7 @@ class ScenePolar2D(LinearTransformationScene):
         self.wait(0.5)
 
         # Step 1: P stretch
-        self.apply_matrix(P, run_time=3)
+        pinned_apply_matrix(self, P, run_time=3)
         self.wait(1.0)
 
         cap2 = cn("第二步: U 旋转 (逆时针 90 度)", color=CU, font_size=24)
@@ -155,7 +196,7 @@ class ScenePolar2D(LinearTransformationScene):
         self.play(Transform(cap, cap2), run_time=0.6)
 
         # Step 2: U rotation
-        self.apply_matrix(U, run_time=3)
+        pinned_apply_matrix(self, U, run_time=3)
         self.wait(1.0)
 
         # Snapshot of after-two-steps shape (outline only) as the coincidence target
@@ -169,7 +210,7 @@ class ScenePolar2D(LinearTransformationScene):
             r"\begin{bmatrix}2&0\\0&1\end{bmatrix}",
             r"=\begin{bmatrix}0&-1\\2&0\end{bmatrix}=A",
         )
-        verify.scale(0.7).to_edge(DOWN, buff=0.55).add_background_rectangle()
+        verify.scale(0.6).to_edge(DOWN, buff=0.55).add_background_rectangle()
         self.play(ReplacementTransform(cap, verify), run_time=1.0)
         self.wait(2.2)
         self.remove(verify)
@@ -177,9 +218,8 @@ class ScenePolar2D(LinearTransformationScene):
         # Reset the plane and circle to pristine geometry to show "one-shot A"
         self.plane.restore()
         circle.restore()
-        for g in list(self.ghost_vectors):
-            self.remove(g)
-        self.ghost_vectors = VGroup()
+        self.i_hat.restore()
+        self.j_hat.restore()
 
         circleB = Circle(radius=1.0, color=YELLOW, stroke_width=5)
         circleB.set_fill(YELLOW, opacity=0.25)
@@ -189,10 +229,12 @@ class ScenePolar2D(LinearTransformationScene):
         capB.to_edge(DOWN, buff=0.55).add_background_rectangle()
         self.add_foreground_mobject(capB)
         self.wait(0.4)
-        self.apply_matrix(A, run_time=3)
+        pinned_apply_matrix(self, A, run_time=3)
         self.wait(1.0)
 
-        ok = cn("两步 (绿轮廓) 与一步 A (黄) 完美重合: U P = A", color=GREEN_B, font_size=22)
+        ok1 = cn("两步 (绿轮廓) 与一步 A (黄) 完美重合", color=GREEN_B, font_size=20)
+        ok2 = cn("U P = A", color=GREEN_B, font_size=20)
+        ok = VGroup(ok1, ok2).arrange(DOWN, buff=0.1)
         ok.to_edge(DOWN, buff=0.55).add_background_rectangle()
         self.play(ReplacementTransform(capB, ok), run_time=0.8)
         self.wait(3)
@@ -205,13 +247,15 @@ class ScenePolarLeftRight(LinearTransformationScene):
     """A = U P (right) vs A = P' U (left), illustrating non-commutativity."""
 
     def __init__(self, **kwargs):
-        super().__init__(show_coordinates=True, leave_ghost_vectors=True, **kwargs)
+        super().__init__(show_coordinates=True, leave_ghost_vectors=False, **kwargs)
 
     def construct(self):
         self.camera.background_color = "#1e1e1e"
 
-        title = cn("左极分解 A = P' U  vs  右极分解 A = U P", color=WHITE, font_size=28)
-        title.to_edge(UP, buff=0.3)
+        title1 = cn("左极分解  vs  右极分解", color=WHITE, font_size=24)
+        title2 = cn("A = P' U   vs   A = U P", color=GREY_B, font_size=22)
+        title = VGroup(title1, title2).arrange(DOWN, buff=0.12)
+        title.to_edge(UP, buff=0.25)
         self.add_foreground_mobject(title)
 
         # Two equation rows top-right
@@ -219,18 +263,19 @@ class ScenePolarLeftRight(LinearTransformationScene):
         right_eq[1].set_color(C_P)
         left_eq = MathTex(r"A = P'", "U", r"\;\text{(first }U\text{ then }P'\text{)}")
         left_eq[0].set_color(C_P)
-        left_eq[1].set_color(C_P)
+        left_eq[1].set_color(CU)
         eqs = VGroup(right_eq, left_eq).arrange(DOWN, buff=0.2, aligned_edge=LEFT)
-        eqs.scale(0.7).to_corner(UR, buff=0.35).add_background_rectangle()
+        eqs.scale(0.7).to_corner(UR, buff=0.35).shift(DOWN * 0.3).add_background_rectangle()
         self.add_foreground_mobject(eqs)
 
         # P' matrix top-left
         pp_mat = Matrix([["1", "0"], ["0", "2"]], left_bracket="(", right_bracket=")")
-        pp_mat.scale(0.48).to_corner(UL, buff=0.4).shift(DOWN * 0.15)
+        pp_mat.scale(0.48)
         pp_lab = MathTex(r"P'=UPU^{T}=", color=C_P, font_size=28).next_to(pp_mat, LEFT, buff=0.1)
         for m in pp_mat.get_entries():
             m.set_color(C_P)
         pp_grp = VGroup(pp_lab, pp_mat).add_background_rectangle()
+        pp_grp.to_corner(UL, buff=0.5).shift(RIGHT * 0.8 + DOWN * 0.3)
         self.add_foreground_mobject(pp_grp)
 
         circle = Circle(radius=1.0, color=YELLOW_E, stroke_width=5)
@@ -244,7 +289,7 @@ class ScenePolarLeftRight(LinearTransformationScene):
         self.wait(0.5)
 
         # Step 1: U rotation (circle shape unchanged)
-        self.apply_matrix(U, run_time=3)
+        pinned_apply_matrix(self, U, run_time=3)
         self.wait(0.8)
 
         cap2 = cn("后 P' 沿新轴拉伸 (Y 方向 x2)", color=C_P, font_size=24)
@@ -252,7 +297,7 @@ class ScenePolarLeftRight(LinearTransformationScene):
         self.play(Transform(cap, cap2), run_time=0.6)
 
         # Step 2: P' stretch
-        self.apply_matrix(PPRIME, run_time=3)
+        pinned_apply_matrix(self, PPRIME, run_time=3)
         self.wait(1.0)
 
         verify = MathTex(
@@ -265,7 +310,9 @@ class ScenePolarLeftRight(LinearTransformationScene):
         self.play(ReplacementTransform(cap, verify), run_time=1.0)
         self.wait(2.5)
 
-        concl = cn("矩阵乘法不可交换: P != P'; 但 P' = U P U^T 通过旋转调整拉伸方向达到等价", color=GREEN_B, font_size=20)
+        concl1 = cn("矩阵乘法不可交换: P ≠ P'", color=GREEN_B, font_size=18)
+        concl2 = cn("P' = U P U^T  调整拉伸方向达到等价", color=GREEN_B, font_size=18)
+        concl = VGroup(concl1, concl2).arrange(DOWN, buff=0.1)
         concl.scale(0.85).to_edge(DOWN, buff=0.5).add_background_rectangle()
         self.play(ReplacementTransform(verify, concl), run_time=1.0)
         self.wait(4)
@@ -279,21 +326,21 @@ class ScenePolar3D(ThreeDScene):
 
     def construct(self):
         self.camera.background_color = "#1e1e1e"
-        self.set_camera_orientation(phi=70 * DEGREES, theta=-55 * DEGREES)
+        self.set_camera_orientation(phi=70 * DEGREES, theta=-55 * DEGREES, zoom=0.75)
 
         title = cn("三维极分解: 球体的拉伸与旋转", color=WHITE, font_size=30)
         title.to_edge(UP, buff=0.3)
         self.add_fixed_in_frame_mobjects(title)
 
         axes = ThreeDAxes(
-            x_range=[-3, 3, 1], y_range=[-3, 3, 1], z_range=[-3, 3, 1],
-            x_length=6, y_length=6, z_length=6,
+            x_range=[-4, 4, 1], y_range=[-4, 4, 1], z_range=[-4, 4, 1],
+            x_length=7, y_length=7, z_length=7,
             axis_config={"color": GREY_B, "stroke_width": 2},
         )
         self.add(axes)
         self.wait(0.5)
 
-        sphere = Sphere(radius=1.0, resolution=(24, 16))
+        sphere = Sphere(radius=1.0, resolution=(16, 12))
         sphere.set_color(GREEN_E)
         sphere.set_opacity(0.35)
         sphere.set_stroke(GREEN_E, width=1)
@@ -354,7 +401,7 @@ class ScenePolarSVD(Scene):
         sq3 = Square(side_length=0.25, color=C_A, fill_opacity=1)
         b1 = VGroup(sq1, cn("P = 拉伸前的纯拉伸, 对称正定", color=GREY_A, font_size=24)).arrange(RIGHT, buff=0.2)
         b2 = VGroup(sq2, cn("U = 纯刚体旋转 (可含反射), 保形", color=GREY_A, font_size=24)).arrange(RIGHT, buff=0.2)
-        b3 = VGroup(sq3, cn("A = U P : 任何可逆线性变换的唯一拆解", color=GREY_A, font_size=24)).arrange(RIGHT, buff=0.2)
+        b3 = VGroup(sq3, cn("A = U P : 任何可逆线性变换的唯一拆解", color=GREY_A, font_size=22)).arrange(RIGHT, buff=0.2)
         bullets = VGroup(b1, b2, b3).arrange(DOWN, buff=0.4, aligned_edge=LEFT)
         bullets.next_to(head, DOWN, buff=0.9)
         self.play(Write(bullets), run_time=2.5)
@@ -372,7 +419,7 @@ class ScenePolarSVD(Scene):
         svd_eq = MathTex(r"A = U", r"(V\Sigma V^{T})", r"= (UV)", r"\Sigma", r"V^{T}")
         svd_eq[0].set_color(CU)
         svd_eq[3].set_color(C_P)
-        svd_eq.scale(1.0).next_to(p_decompose, DOWN, buff=0.6).add_background_rectangle()
+        svd_eq.scale(0.85).next_to(p_decompose, DOWN, buff=0.6).add_background_rectangle()
         self.play(Write(svd_eq), run_time=2.0)
         self.wait(2)
 
