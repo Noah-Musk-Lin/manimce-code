@@ -155,13 +155,13 @@ class ScenePolar2D(LinearTransformationScene):
     """Right polar decomposition A = U P, step by step, then one-shot A proving coincidence."""
 
     def __init__(self, **kwargs):
-        super().__init__(show_coordinates=True, leave_ghost_vectors=False, **kwargs)
+        super().__init__(show_coordinates=False, leave_ghost_vectors=False, **kwargs)
 
     def construct(self):
         self.camera.background_color = "#1e1e1e"
 
         title = cn("右极分解 A = U P (先拉伸后旋转)", color=WHITE, font_size=26)
-        title.to_edge(UP, buff=0.35)
+        title.to_edge(UP, buff=0.35).add_background_rectangle()
         self.add_foreground_mobject(title)
 
         # Matrix numerics top-left
@@ -190,7 +190,7 @@ class ScenePolar2D(LinearTransformationScene):
         self.j_hat.save_state()
         self.add_transformable_mobject(circle)
 
-        cap = cn("第一步: P 拉伸 (X 方向 x2)", color=C_P, font_size=24)
+        cap = cn("右分解 · 第1步: P 拉伸 (X 方向 x2)", color=C_P, font_size=24)
         cap.to_edge(DOWN, buff=0.4).add_background_rectangle()
         self.add_foreground_mobject(cap)
         self.wait(0.5)
@@ -199,7 +199,7 @@ class ScenePolar2D(LinearTransformationScene):
         pinned_apply_matrix(self, P, run_time=3)
         self.wait(1.0)
 
-        cap2 = cn("第二步: U 旋转 (逆时针 90 度)", color=CU, font_size=24)
+        cap2 = cn("右分解 · 第2步: U 旋转 (逆时针 90 度)", color=CU, font_size=24)
         cap2.to_edge(DOWN, buff=0.4).add_background_rectangle()
         self.play(Transform(cap, cap2), run_time=0.6)
 
@@ -240,7 +240,7 @@ class ScenePolar2D(LinearTransformationScene):
         pinned_apply_matrix(self, A, run_time=3)
         self.wait(1.0)
 
-        ok1 = cn("两步 (绿轮廓) 与一步 A (黄) 完美重合", color=GREEN_B, font_size=20)
+        ok1 = cn("右分解两步 (绿轮廓) 与一步 A (黄) 完美重合", color=GREEN_B, font_size=20)
         ok2 = cn("U P = A", color=GREEN_B, font_size=20)
         ok = VGroup(ok1, ok2).arrange(DOWN, buff=0.1)
         ok.to_edge(DOWN, buff=0.55).add_background_rectangle()
@@ -255,25 +255,31 @@ class ScenePolarLeftRight(LinearTransformationScene):
     """A = U P (right) vs A = P' U (left), illustrating non-commutativity."""
 
     def __init__(self, **kwargs):
-        super().__init__(show_coordinates=True, leave_ghost_vectors=False, **kwargs)
+        super().__init__(show_coordinates=False, leave_ghost_vectors=False, **kwargs)
 
     def construct(self):
         self.camera.background_color = "#1e1e1e"
 
         title1 = cn("左极分解  vs  右极分解", color=WHITE, font_size=24)
-        title2 = cn("A = P' U   vs   A = U P", color=GREY_B, font_size=22)
+        title2 = cn("左: A = P' U（先旋转后拉伸）   右: A = U P（先拉伸后旋转）", color=GREY_B, font_size=22)
         title = VGroup(title1, title2).arrange(DOWN, buff=0.12)
-        title.to_edge(UP, buff=0.25)
+        title.to_edge(UP, buff=0.25).add_background_rectangle()
         self.add_foreground_mobject(title)
 
-        # Two equation rows top-right
-        right_eq = MathTex(r"A = U", "P", r"\;\text{(first }P\text{ then }U\text{)}")
-        right_eq[1].set_color(C_P)
-        left_eq = MathTex(r"A = P'", "U", r"\;\text{(first }U\text{ then }P'\text{)}")
+        # Two equation rows top-right: 左分解在上(本节主角), 右分解在下(上一节讲过)
+        left_eq = MathTex(r"A = P'", "U").scale(0.7)
         left_eq[0].set_color(C_P)
         left_eq[1].set_color(CU)
-        eqs = VGroup(right_eq, left_eq).arrange(DOWN, buff=0.2, aligned_edge=LEFT)
-        eqs.scale(0.7).to_corner(UR, buff=0.35).shift(DOWN * 0.3).add_background_rectangle()
+        left_lab = cn("左分解: 先 U 后 P'（本节）", color=YELLOW, font_size=20)
+        left_row = VGroup(left_eq, left_lab).arrange(RIGHT, buff=0.25)
+
+        right_eq = MathTex(r"A = U", "P").scale(0.7)
+        right_eq[1].set_color(C_P)
+        right_lab = cn("右分解: 先 P 后 U（上一节）", color=GREY_B, font_size=20)
+        right_row = VGroup(right_eq, right_lab).arrange(RIGHT, buff=0.25)
+
+        eqs = VGroup(left_row, right_row).arrange(DOWN, buff=0.3, aligned_edge=LEFT)
+        eqs.to_corner(UR, buff=0.35).shift(DOWN * 0.9).add_background_rectangle()
         self.add_foreground_mobject(eqs)
 
         # P' matrix top-left
@@ -283,7 +289,7 @@ class ScenePolarLeftRight(LinearTransformationScene):
         for m in pp_mat.get_entries():
             m.set_color(C_P)
         pp_grp = VGroup(pp_lab, pp_mat).add_background_rectangle()
-        pp_grp.to_corner(UL, buff=0.5).shift(RIGHT * 0.8 + DOWN * 0.3)
+        pp_grp.to_corner(UL, buff=0.5).shift(RIGHT * 0.8 + DOWN * 0.75)
         self.add_foreground_mobject(pp_grp)
 
         circle = Circle(radius=1.0, color=YELLOW_E, stroke_width=5)
@@ -291,7 +297,7 @@ class ScenePolarLeftRight(LinearTransformationScene):
         circle.save_state()
         self.add_transformable_mobject(circle)
 
-        cap = cn("先 U 旋转 90 度 (形状不变)", color=CU, font_size=24)
+        cap = cn("左分解 · 第1步: U 旋转 90 度 (圆形状不变)", color=CU, font_size=24)
         cap.to_edge(DOWN, buff=0.45).add_background_rectangle()
         self.add_foreground_mobject(cap)
         self.wait(0.5)
@@ -300,7 +306,7 @@ class ScenePolarLeftRight(LinearTransformationScene):
         pinned_apply_matrix(self, U, run_time=3)
         self.wait(0.8)
 
-        cap2 = cn("后 P' 沿新轴拉伸 (Y 方向 x2)", color=C_P, font_size=24)
+        cap2 = cn("左分解 · 第2步: P' 沿新轴拉伸 (Y 方向 x2)", color=C_P, font_size=24)
         cap2.to_edge(DOWN, buff=0.45).add_background_rectangle()
         self.play(Transform(cap, cap2), run_time=0.6)
 
@@ -318,8 +324,8 @@ class ScenePolarLeftRight(LinearTransformationScene):
         self.play(ReplacementTransform(cap, verify), run_time=1.0)
         self.wait(2.5)
 
-        concl1 = cn("矩阵乘法不可交换: P ≠ P'", color=GREEN_B, font_size=18)
-        concl2 = cn("P' = U P U^T  调整拉伸方向达到等价", color=GREEN_B, font_size=18)
+        concl1 = cn("同一个 A 的两种拆法: 右 = 先 P 后 U, 左 = 先 U 后 P'", color=GREEN_B, font_size=18)
+        concl2 = cn("乘法不可交换 P ≠ P', 但 P' = U P U^T 殊途同归", color=GREEN_B, font_size=18)
         concl = VGroup(concl1, concl2).arrange(DOWN, buff=0.1)
         concl.scale(0.85).to_edge(DOWN, buff=0.5).add_background_rectangle()
         self.play(ReplacementTransform(verify, concl), run_time=1.0)
