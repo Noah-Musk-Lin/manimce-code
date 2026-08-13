@@ -138,6 +138,7 @@ class ScenePolar2D(LinearTransformationScene):
         circle = Circle(radius=1.0, color=GREEN_E, stroke_width=5)
         circle.set_fill(GREEN_E, opacity=0.3)
         circle.save_state()
+        self.plane.save_state()
         self.add_transformable_mobject(circle)
 
         cap = cn("第一步: P 拉伸 (X 方向 x2)", color=C_P, font_size=24)
