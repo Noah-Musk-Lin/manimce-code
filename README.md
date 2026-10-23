@@ -32,18 +32,6 @@ Grant Sanderson of [3Blue1Brown](https://www.3blue1brown.com/) created [manim](h
 
 Each `.py` file is a complete animation for one mathematical topic, designed as a **standalone scene** that renders directly to video — letting abstract formulas come to life on screen, just like a 3b1b video.
 
-## 📺 关注我 · Follow
-
-<p align="center">
-  <a href="https://space.bilibili.com/3494372465183405">
-    <img src="https://img.shields.io/badge/Bilibili-哔哩哔哩-00A1D6?logo=bilibili&logoColor=white&style=for-the-badge" alt="Bilibili">
-  </a>
-  &nbsp;
-  <a href="https://v.douyin.com/sDg6IeYwx-M/">
-    <img src="https://img.shields.io/badge/Douyin-抖音_LinXMath-000000?logo=tiktok&logoColor=white&style=for-the-badge" alt="Douyin">
-  </a>
-</p>
-
 ## 📚 主题分类 · Topics
 
 > 共 **54 个脚本**，按数学主题分组。每个脚本都包含了渲染时使用的场景类名。
@@ -360,5 +348,5 @@ This project is open-sourced under the [MIT License](./LICENSE). You are free to
 <p align="center">
   Made with ❤️ and a lot of <code>self.play()</code> calls
   <br>
-  <sub>© 2026 LinXMath · Bilibili: <a href="https://space.bilibili.com/3494372465183405">林深不见鹿</a> · Douyin: <a href="https://v.douyin.com/sDg6IeYwx-M/">LinXMath</a></sub>
+  <sub>© 2026 LinXMath</sub>
 </p>
