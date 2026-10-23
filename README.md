@@ -348,5 +348,5 @@ This project is open-sourced under the [MIT License](./LICENSE). You are free to
 <p align="center">
   Made with ❤️ and a lot of <code>self.play()</code> calls
   <br>
-  <sub>© 2026 LinXMath</sub>
+  <sub>© 2026 Tech Titan</sub>
 </p>
